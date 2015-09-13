@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+echo "El propósito de este comando es detectar la llegada de archivos al directorio NOVEDIR y aceptar o rechazar estos archivos según corresponda"

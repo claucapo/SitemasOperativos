@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+echo "El propósito de este comando es leer los archivos que se encuentran en el directorio ACEPDIR con información de archivos de llamadas, procesarlos cronológicamente, asignar el id de umbral si corresponde y grabar los registros de llamadas sospechosas en el archivo de oficina que corresponda en un archivo diferente por cada año – mes"

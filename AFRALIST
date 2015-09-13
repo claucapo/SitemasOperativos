@@ -1,0 +1,8 @@
+#!/usr/bin/env perl
+
+print "Programa Perl...\n";
+
+print "-h (ayuda)\n"
+print "-w(grabar)\n"
+print "-r (consulta)\n"
+print "-s (estadística)\n"

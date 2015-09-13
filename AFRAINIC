@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+echo "El propósito de este comando es preparar el entorno de ejecución del TP (ambiente)."
+
+echo "Directorio de Configuración: CONFDIR (mostrar path y listar archivos)"
+echo "Directorio de Ejecutables: BINDIR (mostrar path y listar archivos) "
+echo "Directorio de Maestros y Tablas: MAEDIR (mostrar path y listar archivos) "
+echo "Directorio de recepción de archivos de llamadas: NOVEDIR"
+echo "Directorio de Archivos de llamadas Aceptados: ACEPDIR"
+echo "Directorio de Archivos de llamadas Sospechosas: PROCDIR"
+echo "Directorio de Archivos de Reportes de llamadas: REPODIR"
+echo "Directorio de Archivos de Log: LOGDIR (mostrar path y listar archivos) "
+echo "Directorio de Archivos Rechazados: RECHDIR"
+echo "Estado del Sistema: INICIALIZADO"
+
+echo "¿Desea efectuar la activación de AFRARECI? Si – No"
+
+echo "AFRARECI corriendo bajo el no.: <Process Id de AFRARECI>"

@@ -1,1 +1,29 @@
-# SitemasOperativos
+# AFRA-I
+
+a) Una explicación de cómo arrancar el SO desde puerto USB 
+
+b) Una explicación de cómo loguearse 
+
+c) Una explicación de cómo descargar el paquete 
+
+d) Una explicación de cómo copiar, descomprimir, crear directorio del grupo, etc 
+
+e) Que se requiere para poder instalar 
+
+f) Instrucciones de instalación del sistema AFRA-I 
+
+# Ejecutar el instalador
+./AFRAINST
+
+g) Que nos deja la instalación y dónde 
+
+h) Cuáles son los primeros pasos para poder correr el sistema una vez instalado 
+
+# Ejecutar 
+./
+
+i) Como frenar la ejecución de comandos 
+
+j) Cualquier otra indicación que considere necesaria
+
+
