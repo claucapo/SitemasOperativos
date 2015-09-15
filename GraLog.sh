@@ -1,12 +1,12 @@
 #Ejemplo: GraLog MoverA.sh 'Moviendo archivo de origen a destino' 'INFO'
 
-#INF = INFORMATIVO: mensajes explicativos sobre ejecución de algun comando. Ejemplo: Comando 'X' ha corrido satisfactoriamente
+#INFO = INFORMATIVO: mensajes explicativos sobre ejecución de algun comando. Ejemplo: Comando 'X' ha corrido satisfactoriamente
 #WAR = WARNING: mensajes de advertencia pero que no afectan la continuidad de ejecución. Ejemplo: Archivo duplicado
 #ERR = ERROR: mensajes de error. Ejemplo: Archivo Inexistente.
 
 ##$LOGDIR ya tiene que estar seteado a este punto
 loggerPathDefault=$LOGDIR"/GraLog.sh.log"
-user=$USERNAME
+user=$USER
 
 nombreScript='GraLog.sh'
 
