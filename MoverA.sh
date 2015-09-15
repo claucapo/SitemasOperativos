@@ -13,7 +13,7 @@ then
 	echo "Para utilizar MoverA.sh correctamente:"
 	echo "Mover ArchivoAMover Destino ComandoQueLlama(opcional)"
 	#registrando en el log
-	#$GRUPO/Glog.sh "$nombreScript" 'Comando mal utilizado' 'ERR'  <--- algo asi deberia ser la llamada?
+	$GRUPO/Glog.sh "$nombreScript" 'Comando mal utilizado' 'INF'
 	exit 1
 fi
 
@@ -31,9 +31,9 @@ then
 	#registro esto en el log
 	if [ $# -eq 3 ]
 	then
-		echo "$3 - Comando MoverA.sh invocado con origen igual a destino. Llamado por $3" #esto se va a guardar en log
+		echo "$3" "Comando MoverA.sh invocado con origen igual a destino. Llamado por $3" "ERR"
 	else
-		echo "$nombreScript - Comando MoverA.sh invocado con origen igual a destino. Llamado por $3"
+		echo "$nombreScript" "Comando MoverA.sh invocado con origen igual a destino. Llamado por $3" "ERR"
 	fi
 	exit 0
 fi
@@ -46,9 +46,9 @@ then
 	#registro esto en el log
 	if [ $# -eq 3 ]
 	then
-		echo "$3 - No existe directorio $ORIGEN_DIR, archivo $ORIGEN_FILE no movido."
+		echo "$3" "No existe directorio $ORIGEN_DIR, archivo $ORIGEN_FILE no movido." "ERR"
 	else
-		echo "$nombreScript - Directorio $ORIGENDIR inexistente, archivo $ORIGENFILE no movido."
+		echo "$nombreScript" "Directorio $ORIGEN_DIR inexistente, archivo $ORIGEN_FILE no movido." "ERR"
 	fi
 	exit 1
 fi
@@ -60,9 +60,9 @@ then
 	#registro esto en el log
 	if [ $# -eq 3 ]
 	then
-		echo "$3 - No existe directorio $2, archivo $ORIGENFILE no movido."
+		echo "$3 - No existe directorio $2, archivo $ORIGEN_FILE no movido."
 	else
-		echo "$nombreScript - No existe directorio $2, archivo $ORIGENFILE no movido."
+		echo "$nombreScript - No existe directorio $2, archivo $ORIGEN_FILE no movido."
 	fi
 	exit 1
 fi
@@ -74,9 +74,9 @@ then
 	#registro esto en el log
 	if [ $# -eq 3 ]
 	then
-		$GRUPO/Glog.sh "$3 - No existe $1."
+		$GRUPO/Glog.sh "$3" "No existe $1." "ERR"
 	else
-		$GRUPO/Glog.sh "$nombreScript - No existe $1."
+		$GRUPO/Glog.sh "$nombreScript" "No existe $1." "ERR"
 	fi
 	exit 1
 fi
@@ -91,9 +91,9 @@ then
 	mv "$1" "$FILE_DESTINO" 
 	if [ $# -eq 3 ]
 	then
-		echo "$3 - $1 movido a $2"
+		echo "$3" "$1 movido a $2" "INF"
 	else
-		echo "$nombreScript - $1 movido a $2"
+		echo "$nombreScript" "$1 movido a $2" "INF"
 	fi
 	exit 0
 else
