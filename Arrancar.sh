@@ -18,7 +18,7 @@ if [ $? -eq 0 ]; then
 	exit 0
 else
 	#aca tengo que ejecutar el comando
-	#$BINDIR/AFRARECI.sh & <-- algo asi deberia ser
+	#$BINDIR/AFRARECI.sh &
 	$afrareciCommandChecker
 	if [ $? -eq 0 ]; then
 		pid=`ps -e | grep '^.* AFRARECI\.sh$'` #todavia no funca

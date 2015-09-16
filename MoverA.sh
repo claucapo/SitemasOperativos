@@ -1,9 +1,17 @@
 #!/bin/bash
 
 #MoverA archivoAMover destino quienLlama(opcional)
-#Ejemplo: Mover /ParaProcesar/asd.csv /Procesados ProPro.sh
+#Ejemplo: Mover /ParaProcesar/asd.csv /Procesados AFRARECI.sh
 
-# NO TIENE QUE PONERSE LA BARRA AL FINAL DE DESTINO
+# NO SE DEBE AGREGAR BARRA AL FINAL DE DESTINO
+
+## Requerimiento:
+# - Mover el archivo solicitado al directorio indicado sin alterar su contenido
+# - Si en el destino ya existe otro archivo con el mismo nombre (nombre de archivo duplicado), no debe fracasar la operación, la función debe poder conservar ambos.
+#	· Crear un subdirectorio /duplicados para depositar el archivo duplicado y moverlo allí
+# - Si no obstante ello, también en /duplicados ya existe otro archivo con el mismo nombre, 
+# 	· Emplear una secuencia para complementar el nombre del archivo por ejemplo: <nombre del archivo original>.nnn dónde nnn es un número de secuencia
+# - Si esta función es invocada por un comando que graba en un archivo de log, registrar el resultado de su uso en el log del comando
 
 nombreScript="MoverA.sh"
 
@@ -13,7 +21,7 @@ then
 	echo "Para utilizar MoverA.sh correctamente:"
 	echo "Mover ArchivoAMover Destino ComandoQueLlama(opcional)"
 	#registrando en el log
-	$GRUPO/Gralog.sh "$nombreScript" 'Comando mal utilizado' 'INF'
+	$GRUPO/Gralog.sh "$nombreScript" 'Comando mal utilizado' 'INFO'
 	exit 1
 fi
 
@@ -97,6 +105,13 @@ then
 	fi
 	exit 0
 else
+	#Hipotesis General: Se va usar solo un numero de secuencia para toda la instalacion
+	#Hay que buscar en el archivo de configuracion el numero de secuencia
+	#Actualizar el valor de secuencia dentro del archivo de configuracion 
+
+	#Hipotesis General: Se va  usar un unico directorio de /duplicados para todo el sistema
+	#Mover el archivo al directorio /duplicados y le agrego al nombre del archivo la secuencia
+
 	echo "aca es el bardo...."
 fi
 

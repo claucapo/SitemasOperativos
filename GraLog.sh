@@ -4,6 +4,17 @@
 #WAR = WARNING: mensajes de advertencia pero que no afectan la continuidad de ejecución. Ejemplo: Archivo duplicado
 #ERR = ERROR: mensajes de error. Ejemplo: Archivo Inexistente.
 
+
+
+# - Se debe controlar el crecimiento del archivo de log
+#	· En todo sistema, es importante evitar el crecimiento INDISCRIMINADO de los archivos de Log. 
+#		Es por ello que esta función debe preveer un mecanismo para controlarlo y evitarlo
+#	· En este mecanismo se debe tener en cuenta la variable de configuración LOGSIZE que representa el tamaño 
+#			máximo que puede alcanzar un archivo de log en nuestrosistema.
+#	· Este tamaño máximo es un valor de referencia ya que a los efectos prácticos, todo depende del momento en que se realiza el control.
+#	· Lo importante es que SIEMPRE adopte un mecanismo para mantener controlado el
+#		tamaño de un log. Puede adoptar cualquier mecanismo, aclare en Hipótesis y Aclaraciones Globales cual fue el que adoptó.
+
 ##$LOGDIR ya tiene que estar seteado a este punto
 loggerPathDefault=$LOGDIR"/GraLog.sh.log"
 user=$USER
