@@ -21,10 +21,30 @@ user=$USER
 
 nombreScript='GraLog.sh'
 
-defaultMaxLineas=500  ##discutir cantidad
 defaultTipoMensaje='INFO'
+BYTES_IN_KB=1024
 
 ERROR_POR_PARAMETROS=-2
+
+where=$1	#desde donde se lanza script
+why=$2		#mensaje que se quiere loguear
+
+function division(){ # la necesito para calcular el tamaño en kb 
+	echo $(($1 + $2/2) / $2))
+}
+
+function maxSizeHandler(){
+	tamanioArchivoBytes=`stat -c %s $archivoLog` #obtengo la cantidad de bytes
+	tamanioArchivoKbytes=$(division tamanioArchivoBytes BYTES_IN_KB)
+	if [ $TAMANIO_kb -gt $LOGSIZE ]
+	then
+		temp='templog.log'
+		echo " Log Excedido. " >> $temp 
+		tail -n 50 $archivoLog >> $temp 		#agrego las ultimas 50 lineas del log viejo al nuevo.
+		rm $archivoLog
+		mv $temp $archivoLog
+	fi
+}
 
 #Si GraLog es llamado sin la cantidad de comandos correctos mostrar mensaje
 if [ $# -ne 3 -a $# -ne 2 ]
@@ -33,57 +53,52 @@ then
 	echo "GraLog ComandoQueLlamo 'Mensaje' TipoDeMensaje(opcional)"
 	echo `date +%F`"|"`date +%T`" $user $nombreScript ERR Comando Gralog mal utilizado" >> "$loggerPathDefault"
 	
-	#cantidad de lineas que tiene el log actual
-	lineasQueTieneElArchivo=`wc -l $loggerPathDefault | cut -d ' ' -f 1`	
-	#aca tengo que hacer la validacion para ver cuando truncar log
-	if [ $lineasQueTieneElArchivo -ge $defaultMaxLines ]
-	then
-		echo "ver que se puede hacer"
-	fi
+	archivoLog=$loggerPathDefault
+	
 	exit $ERROR_POR_PARAMETROS
 fi
 
-if "$1"
+
+
 case "$1" in
 	MoverA.sh)
-		archivoLog=$LOGDIR"/"$1".log" ;;
+		archivoLog=$LOGDIR"/"$where".log" ;;
 	Gralog.sh)
-		archivoLog=$LOGDIR"/"$1".log";;
+		archivoLog=$LOGDIR"/"$where".log";;
 	Detener.sh)
-		archivoLog=$LOGDIR"/"$1".log" ;;
+		archivoLog=$LOGDIR"/"$where".log" ;;
 	Arrancar.sh)
-		archivoLog=$LOGDIR"/"$1".log" ;;
+		archivoLog=$LOGDIR"/"$where".log" ;;
 	AFRAUMBR.sh)
-		archivoLog=$LOGDIR"/"$1".log" ;;
+		archivoLog=$LOGDIR"/"$where".log" ;;
 	AFRAINST.sh)
-		archivoLog=$GRUPO"/conf/"$1".log" ;;
+		archivoLog=$GRUPO"/conf/"$where".log" ;;
 	AFRANIC.sh)
-		archivoLog=$LOGDIR"/"$1".log" ;;
+		archivoLog=$LOGDIR"/"$where".log" ;;
 	AFRARECI.sh)
-		archivoLog=$LOGDIR"/"$1".log" ;;
+		archivoLog=$LOGDIR"/"$where".log" ;;
 	*)
-		echo `date +%F`"|"`date +%T`" $user $nombreScript $defaultTipoMensaje Comando Gralog no reconocio el script pasado como primer parametro" >> "$loggerPathDefault"
+		echo `date +%F`"|"`date +%T`" $user $nombreScript $defaultTipoMensaje Comando Gralog no reconocio el nombre del script $where" >> "$loggerPathDefault"
 		exit ERROR_POR_PARAMETROS ;;
 esac
 
 if [ -f $archivoLog ]
 then
-	#tamaño log
-	tamanioArchivo=`stat -c %s $archivoLog`
-	# ver que se puede hacer
+	#valido tamaño log
+	maxSizeHandler #llamo a funcion que checkea
 else
 	#creo log
 	touch $archivoLog
 fi   
 
-
+	
 if [ $# -eq 3 ]
 then
-	echo `date +%F`"|"`date +%T`" $user $1 $3 $2" >> "$archivoLog"
+	echo `date +%F`"|"`date +%T`" $user $where $3 $why" >> "$archivoLog"
 	exit 0
 else
 	#si entro aca es porque $# -eq 2
-	echo `date +%F`"|"`date +%T`" $user $1 $defaultTipoMensaje $2" >> "$archivoLog"
+	echo `date +%F`"|"`date +%T`" $user $where $defaultTipoMensaje $why" >> "$archivoLog"
 	exit 0
 fi
 
