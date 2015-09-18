@@ -9,22 +9,22 @@ if [ "$BINDIR" = '' ]; then
 	exit 1
 fi
 
-afrareciCommandChecker=`ps -e | grep '^.* AFRARECI\.sh$'`
+afrareciPid=`ps -e | grep '^.* AFRARECI\.sh$' | sed 's/ \?\([0-9]*\).*/\1/' | awk '{print $1}' | head -n 1`
 
-if [ $? -eq 0 ]; then
-	pid=`ps -e | grep '^.* AFRARECI\.sh$'` #lo tengo que seguir armando
-	echo "Error: AFRARECI se esta ejecutando con PID: ${pid}"
-	$GRUPO/GraLog.sh "$nombreScript" "El demonio ya se encuentra corriendo con PID: ${pid}"
+if [ afrareciPid != ""]; then
+	echo "Error: AFRARECI se esta ejecutando con PID: ${afrareciPid}"
+	$GRUPO/GraLog.sh "$nombreScript" "El demonio ya se encuentra corriendo con PID: ${afrareciPid}"
 	exit 0
 else
 	#aca tengo que ejecutar el comando
-	#$BINDIR/AFRARECI.sh &
-	$afrareciCommandChecker
-	if [ $? -eq 0 ]; then
-		pid=`ps -e | grep '^.* AFRARECI\.sh$'` #todavia no funca
-		echo "AFRARECI.sh inicializado con PID: ${pid}"				
-		$GRUPO/Gralog.sh "$nombreScript" "Iniciando el demonio AFRARECI con el Process ID: ${pid}"
+	$BINDIR/AFRARECI.sh &
+	afrareciPid=`ps -e | grep '^.* AFRARECI\.sh$' | sed 's/ \?\([0-9]*\).*/\1/' | awk '{print $1}' | head -n 1`
+	if [ afrareciPid != "" ]; then
+		echo "AFRARECI.sh inicializado con PID: ${afrareciPid}"				
+		$GRUPO/Gralog.sh "$nombreScript" "Iniciando el demonio AFRARECI con el Process ID: ${afrareciPid}"
 		exit 0
+	else 
+		$GRUPO/Gralog.sh "$nombreScript" "Error al iniciar el proceso AFRARECI.sh"
 	fi
 
 fi
