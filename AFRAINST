@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-
-echo "El propósito de este comando es efectuar la instalación del sistema AFRA-I."
-
-echo "Defina el directorio de ejecutables ($grupo/bin):"
