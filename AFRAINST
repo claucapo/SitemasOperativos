@@ -1,0 +1,135 @@
+#!/bin/bash
+# Script para instalar el sistema AFRA-I
+
+GRUPO=$(dirname $0) # Obtengo el directorio del script
+CONFDIR=$GRUPO/conf # Directorio del archivo de configuracion
+BINDIR=$GRUPO/bin
+MAEDIR=$GRUPO/mae
+NOVEDIR=$GRUPO/novedades
+DATASIZE=100
+ACEPDIR=$GRUPO/aceptadas
+PROCDIR=$GRUPO/sospechosas
+REPODIR=$GRUPO/reportes
+LOGDIR=$GRUPO/log
+LOGSIZE=400
+LOGEXT=log
+RECHDIR=$GRUPO/rechazadas
+PERL_MINIMO=5 # Version de Perl necesaria
+
+# Funciones
+
+# $1: Variable donde guardar el valor ; $2: Mensaje a mostrar ; $3: Opcion por default
+function obtener_valor {
+    echo
+    echo -n -e "$2"
+    read OPCION
+    if [ -z "$OPCION" ] ; then
+        OPCION="$3" # Opcion por default
+    fi
+    eval "$1='$OPCION'"
+}
+
+# /Funciones
+
+# Verificar si AFRA-I esta instalado
+if [ ! -d conf ] ; then
+    echo "¡No existe directorio de configuración!"
+    exit
+fi
+cd conf
+if [ -f AFRAINST.conf ] ; then
+    # Ya esta instalado
+    echo "Hay que verificar que esté la instalación completa"
+else
+    # Hay que instalar
+    
+    VERSION_PERL=`(perl -v) | sed -n "s-^This is perl \([0-9]*\).*-\1-p"`
+    if [ ! $VERSION_PERL -ge $PERL_MINIMO ] ; then
+        echo -e "Para ejecutar el sistema AFRA-I es necesario contar con Perl 5 o superior.\n\nEfectúe su instalación e inténtelo nuevamente.\n\nProceso de instalación cancelado." 
+        exit
+    fi
+    
+    OPCION=A
+    while [ "$OPCION" != Si ] ; do
+        obtener_valor OPCION "***********************************************************\n*           Proceso de Instalación de \"AFRA-I\"            *\n* Tema I Copyright © Grupo 01 - Segundo Cuatrimestre 2015 *\n***********************************************************\nA T E N C I O N: Al instalar UD. expresa aceptar los térmi-\nnos y condiciones del \"ACUERDO DE LICENCIA DE SOFTWARE\"\nincluido en este paquete.\n¿Acepta? (Si–No): " Si
+        if [ "$OPCION" == No ] ; then
+            exit
+        fi
+    done
+    
+    OPCION_MAESTRA=No
+    while [ "$OPCION_MAESTRA" == No ] ; do
+        obtener_valor BINDIR "Defina el directorio de instalación de los ejecutables ($BINDIR): " $BINDIR
+        BINDIR=$GRUPO/"$BINDIR"
+        
+        obtener_valor MAEDIR "Defina el directorio para maestros y tablas ($MAEDIR): " $MAEDIR
+        MAEDIR=$GRUPO/"$MAEDIR"
+        
+        obtener_valor NOVEDIR "Defina el directorio de recepción de archivos de llamadas ($NOVEDIR): " $NOVEDIR
+        NOVEDIR=$GRUPO/"$NOVEDIR"
+        
+        OPCION=A
+        while ! [[ "$OPCION" =~ ^[0-9]*$ ]] ; do # Repetir mientras no se ingrese un numero
+            obtener_valor OPCION "Defina el espacio mínimo libre para la recepción de archivos de llamadas en MBytes ($DATASIZE): " $DATASIZE
+        done
+        DATASIZE=$OPCION
+        
+        # Verificar espacio en disco
+        DISPONIBLE=`df -BM --total | grep ^total | sed -n "s-^total[^0-9]*[0-9][0-9]*M[^0-9]*[0-9][0-9]*M[^0-9]*\([0-9][0-9]*\)M[^0-9]*[0-9][0-9]*%[^0-9]*-\1-p"`
+        if [[ $DISPONIBLE < $DATASIZE ]] ; then
+            echo -e "Insuficiente espacio en disco.\n\nEspacio disponible: " $DISPONIBLE "MB.\n\nEspacio requerido: " $DATASIZE "MB.\n\nInténtelo nuevamente."
+            exit
+        fi
+        
+        obtener_valor ACEPDIR "Defina el directorio de grabación de los archivos de llamadas aceptadas ($ACEPDIR): " $ACEPDIR
+        ACEPDIR=$GRUPO/"$ACEPDIR"
+        
+        obtener_valor PROCDIR "Defina el directorio de grabación de los registros de llamadas sospechosas ($PROCDIR): " $PROCDIR
+        PROCDIR=$GRUPO/"$PROCDIR"
+        
+        obtener_valor REPODIR "Defina el directorio de grabación de los reportes ($REPODIR): " $REPODIR
+        REPODIR=$GRUPO/"$REPODIR"
+        
+        obtener_valor LOGDIR "Defina el directorio para los archivos de log ($LOGDIR): " $LOGDIR
+        LOGDIR=$GRUPO/"$LOGDIR"
+        
+        OPCION=INVALIDA
+        while [ $OPCION =~ "^[a-zA-Z0-9]\{1,5\}$" ] ; do # Repetir mientras no sea una extension valida
+            obtener_valor OPCION "Defina el nombre para la extensión de los archivos de log ($LOGEXT): " $LOGEXT
+        done
+        LOGEXT=$OPCION
+        
+        OPCION=A
+        while ! [[ "$OPCION" =~ ^[0-9]*$ ]] ; do # Repetir mientras no se ingrese un numero
+            obtener_valor OPCION "Defina el tamaño máximo para cada archivo de log en kBytes ($LOGSIZE): " $LOGSIZE
+        done
+        LOGSIZE=$OPCION
+        
+        obtener_valor RECHDIR "Defina el directorio de grabación de archivos rechazados ($RECHDIR): " $RECHDIR
+        RECHDIR=$GRUPO/"$RECHDIR"
+        
+        # Informe de valores ingresados
+        OPCION_MAESTRA=A
+        while [ "$OPCION_MAESTRA" != Si ] ; do
+            obtener_valor OPCION_MAESTRA "Directorio de ejecutables: $BINDIR\n\nDirectorio de Maestros y Tablas: $MAEDIR\n\nDirectorio de recepción de archivos de llamadas: $NOVEDIR\n\nEspacio mínimo libre para arribos: $DATASIZE MB\n\nDirectorio de archivos de llamadas aceptados: $ACEPDIR\n\nDirectorio de archivos de llamadas sospechosas: $PROCDIR\n\nDirectorio de archivos de reportes de llamadas: $REPODIR\n\nDirectorio de archivos de log: $LOGDIR\n\nExtensión para los archivos de log: $LOGEXT\n\nTamaño máximo para los archivos de log: $LOGSIZE kB\n\nDirectorio de archivos rechazados: $RECHDIR\n\nEstado de la instalación: LISTA\n\n¿Desea continuar con la instalación? (Si-No): " Si
+            if [ "$OPCION_MAESTRA" == No ] ; then
+                # Volver a preguntar directorios
+                clear
+                continue
+            fi
+        done
+    
+    done
+    
+    # Confirmar instalación
+    OPCION=A
+    while [ "$OPCION" != Si ] ; do
+        obtener_valor OPCION "Iniciando instalación. ¿Está Ud. seguro? (Si-No): " Si
+        if [ "$OPCION" == No ] ; then
+            exit
+        fi
+    done
+    
+    # Instalación!!!!!!
+    
+fi
