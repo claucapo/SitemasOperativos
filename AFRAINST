@@ -29,6 +29,14 @@ function obtener_valor {
     eval "$1='$OPCION'"
 }
 
+# $1: Variable donde está el path ; $2: Path
+function normalizar_path {
+    if ! [[ $2 =~ ^$GRUPO.*$ ]] ; then # Si el path es relativo
+        local AUX=$GRUPO/$2
+        eval "$1=$AUX"
+    fi
+}
+
 # /Funciones
 
 # Verificar si AFRA-I esta instalado
@@ -60,13 +68,13 @@ else
     OPCION_MAESTRA=No
     while [ "$OPCION_MAESTRA" == No ] ; do
         obtener_valor BINDIR "Defina el directorio de instalación de los ejecutables ($BINDIR): " $BINDIR
-        BINDIR=$GRUPO/"$BINDIR"
+        normalizar_path BINDIR $BINDIR
         
         obtener_valor MAEDIR "Defina el directorio para maestros y tablas ($MAEDIR): " $MAEDIR
-        MAEDIR=$GRUPO/"$MAEDIR"
+        normalizar_path MAEDIR $MAEDIR
         
         obtener_valor NOVEDIR "Defina el directorio de recepción de archivos de llamadas ($NOVEDIR): " $NOVEDIR
-        NOVEDIR=$GRUPO/"$NOVEDIR"
+        normalizar_path NOVEDIR $NOVEDIR
         
         OPCION=A
         while ! [[ "$OPCION" =~ ^[0-9]*$ ]] ; do # Repetir mientras no se ingrese un numero
@@ -82,19 +90,19 @@ else
         fi
         
         obtener_valor ACEPDIR "Defina el directorio de grabación de los archivos de llamadas aceptadas ($ACEPDIR): " $ACEPDIR
-        ACEPDIR=$GRUPO/"$ACEPDIR"
+        normalizar_path ACEPDIR $ACEPDIR
         
         obtener_valor PROCDIR "Defina el directorio de grabación de los registros de llamadas sospechosas ($PROCDIR): " $PROCDIR
-        PROCDIR=$GRUPO/"$PROCDIR"
+        normalizar_path PROCDIR $PROCDIR
         
         obtener_valor REPODIR "Defina el directorio de grabación de los reportes ($REPODIR): " $REPODIR
-        REPODIR=$GRUPO/"$REPODIR"
+        normalizar_path REPODIR $REPODIR
         
         obtener_valor LOGDIR "Defina el directorio para los archivos de log ($LOGDIR): " $LOGDIR
-        LOGDIR=$GRUPO/"$LOGDIR"
+        normalizar_path LOGDIR $LOGDIR
         
         OPCION=INVALIDA
-        while [ $OPCION =~ "^[a-zA-Z0-9]\{1,5\}$" ] ; do # Repetir mientras no sea una extension valida
+        while ! [[ "$OPCION" =~ ^[a-zA-Z0-9]{1,5}$ ]] ; do # Repetir mientras no sea una extension valida
             obtener_valor OPCION "Defina el nombre para la extensión de los archivos de log ($LOGEXT): " $LOGEXT
         done
         LOGEXT=$OPCION
@@ -106,7 +114,7 @@ else
         LOGSIZE=$OPCION
         
         obtener_valor RECHDIR "Defina el directorio de grabación de archivos rechazados ($RECHDIR): " $RECHDIR
-        RECHDIR=$GRUPO/"$RECHDIR"
+        normalizar_path RECHDIR $RECHDIR
         
         # Informe de valores ingresados
         OPCION_MAESTRA=A
@@ -115,7 +123,7 @@ else
             if [ "$OPCION_MAESTRA" == No ] ; then
                 # Volver a preguntar directorios
                 clear
-                continue
+                break
             fi
         done
     
