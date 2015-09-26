@@ -30,7 +30,7 @@ where=$1	#desde donde se lanza script
 why=$2		#mensaje que se quiere loguear
 
 function division(){ # la necesito para calcular el tamaño en kb 
-	echo $(($1 + $2/2) / $2))
+	echo $(($1 + $2/2) / $2)
 }
 
 function maxSizeHandler(){
