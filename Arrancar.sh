@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#Uso: Arrancar.sh 
+#Uso: Arrancar
 
 nombreScript=`basename "$0"`
 
@@ -9,7 +9,7 @@ if [ "$BINDIR" = '' ]; then
 	exit 1
 fi
 
-afrareciPid=`ps -e | grep '^.* AFRARECI\.sh$' | sed 's/ \?\([0-9]*\).*/\1/' | awk '{print $1}' | head -n 1`
+afrareciPid=`ps -e | grep '^.* AFRARECI$' | sed 's/ \?\([0-9]*\).*/\1/' | awk '{print $1}' | head -n 1`
 
 if [ afrareciPid != ""]; then
 	echo "Error: AFRARECI se esta ejecutando con PID: ${afrareciPid}"
@@ -18,13 +18,13 @@ if [ afrareciPid != ""]; then
 else
 	#aca tengo que ejecutar el comando
 	$BINDIR/AFRARECI.sh &
-	afrareciPid=`ps -e | grep '^.* AFRARECI\.sh$' | sed 's/ \?\([0-9]*\).*/\1/' | awk '{print $1}' | head -n 1`
+	afrareciPid=`ps -e | grep '^.* AFRARECI$' | sed 's/ \?\([0-9]*\).*/\1/' | awk '{print $1}' | head -n 1`
 	if [ afrareciPid != "" ]; then
-		echo "AFRARECI.sh inicializado con PID: ${afrareciPid}"				
+		echo "AFRARECI inicializado con PID: ${afrareciPid}"				
 		$GRUPO/Gralog.sh "$nombreScript" "Iniciando el demonio AFRARECI con el Process ID: ${afrareciPid}"
 		exit 0
 	else 
-		$GRUPO/Gralog.sh "$nombreScript" "Error al iniciar el proceso AFRARECI.sh"
+		$GRUPO/Gralog.sh "$nombreScript" "Error al iniciar el proceso AFRARECI"
 	fi
 
 fi

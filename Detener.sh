@@ -1,12 +1,12 @@
 #!/bin/bash
 
-#Uso: Detener.sh nombreFunción
+#Uso: Detener nombreFunción
 
 if [ $# -ne 1 ]
 then
 	echo ""
-	echo -e '\t'"Detener.sh fue  llamado incorrectamente. La llamada debe tener formato:"
-	echo -e '\t'">bash Detener.sh nombreProcesoAMatar"
+	echo -e '\t'"Detener fue  llamado incorrectamente. La llamada debe tener formato:"
+	echo -e '\t'">bash Detener nombreProcesoAMatar"
 	exit 1
 fi
 

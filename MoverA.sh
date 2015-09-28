@@ -1,7 +1,7 @@
 #!/bin/bash
 
-#MoverA archivoAMover destino quienLlama(opcional)
-#Ejemplo: Mover /ParaProcesar/asd.csv /Procesados AFRARECI.sh
+#MoverA.sh archivoAMover destino quienLlama(opcional)
+#Ejemplo: MoverA.sh /ParaProcesar/asd.csv /Procesados AFRARECI
 
 # NO SE DEBE AGREGAR BARRA AL FINAL DE DESTINO
 
@@ -21,7 +21,7 @@ then
 	echo "Para utilizar MoverA.sh correctamente:"
 	echo "Mover ArchivoAMover Destino ComandoQueLlama(opcional)"
 	#registrando en el log
-	$BINDIR/GraLog.sh "$nombreScript" 'Comando mal utilizado' 'INFO'
+	"$BINDIR"/GraLog.sh "$nombreScript" 'Comando mal utilizado' 'INFO'
 	exit 1
 fi
 
@@ -39,9 +39,9 @@ then
 	#registro esto en el log
 	if [ $# -eq 3 ]
 	then
-		$BINDIR/GraLog.sh "$3" "Comando MoverA.sh invocado con origen igual a destino. Llamado por $3" "ERR"
+		"$BINDIR"/GraLog.sh "$3" "Comando MoverA.sh invocado con origen igual a destino. Llamado por $3" "ERR"
 	else
-		$BINDIR/GraLog.sh "$nombreScript" "Comando MoverA.sh invocado con origen igual a destino. Llamado por $3" "ERR"
+		"$BINDIR"/GraLog.sh "$nombreScript" "Comando MoverA.sh invocado con origen igual a destino. Llamado por $3" "ERR"
 	fi
 	exit 0
 fi
@@ -54,9 +54,9 @@ then
 	#registro esto en el log
 	if [ $# -eq 3 ]
 	then
-		$BINDIR/GraLog.sh "$3" "No existe directorio $ORIGEN_DIR, archivo $ORIGEN_FILE no movido." "ERR"
+		"$BINDIR"/GraLog.sh "$3" "No existe directorio $ORIGEN_DIR, archivo $ORIGEN_FILE no movido." "ERR"
 	else
-		$BINDIR/GraLog.sh "$nombreScript" "Directorio $ORIGEN_DIR inexistente, archivo $ORIGEN_FILE no movido." "ERR"
+		"$BINDIR"/GraLog.sh "$nombreScript" "Directorio $ORIGEN_DIR inexistente, archivo $ORIGEN_FILE no movido." "ERR"
 	fi
 	exit 1
 fi
@@ -68,9 +68,9 @@ then
 	#registro esto en el log
 	if [ $# -eq 3 ]
 	then
-		$BINDIR/GraLog.sh "$3" "No existe directorio $2, archivo $ORIGEN_FILE no movido." "ERR"
+		"$BINDIR"/GraLog.sh "$3" "No existe directorio $2, archivo $ORIGEN_FILE no movido." "ERR"
 	else
-		$BINDIR/GraLog.sh "$nombreScript" "No existe directorio $2, archivo $ORIGEN_FILE no movido." "ERR"
+		"$BINDIR"/GraLog.sh "$nombreScript" "No existe directorio $2, archivo $ORIGEN_FILE no movido." "ERR"
 	fi
 	exit 1
 fi
@@ -82,9 +82,9 @@ then
 	#registro esto en el log
 	if [ $# -eq 3 ]
 	then
-		$BINDIR/GraLog.sh "$3" "No existe $1." "ERR"
+		"$BINDIR"/GraLog.sh "$3" "No existe $1." "ERR"
 	else
-		$BINDIR/GraLog.sh "$nombreScript" "No existe $1." "ERR"
+		"$BINDIR"/GraLog.sh "$nombreScript" "No existe $1." "ERR"
 	fi
 	exit 1
 fi
@@ -99,19 +99,19 @@ then
 	mv "$1" "$FILE_DESTINO" 
 	if [ $# -eq 3 ]
 	then
-		$BINDIR/GraLog.sh "$3" "$1 movido a $2" "INFO"
+		"$BINDIR"/GraLog.sh "$3" "$1 movido a $2" "INFO"
 	else
-		$BINDIR/GraLog.sh "$nombreScript" "$1 movido a $2" "INFO"
+		"$BINDIR"/GraLog.sh "$nombreScript" "$1 movido a $2" "INFO"
 	fi
 	exit 0
 else
 	#Hipotesis General: Se va usar solo un numero de secuencia para toda la instalacion
 	#Hay que buscar en el archivo de configuracion el numero de secuencia (considero que va a tener nombre SECUENCIA)
-	sec_value=`grep SECUENCIA $CONFDIR/AFRAINST.conf | cut -d '=' -f 2`
+	sec_value=`grep SECUENCIA "$CONFDIR"/AFRAINST.conf | cut -d '=' -f 2`
 	#Actualizar el valor de secuencia dentro del archivo de configuracion 
 	new_value=$((sec_value + 1))
 	#Hipotesis General: Se va  usar un unico directorio de /duplicados para todo el sistema
-	sed -i s/SECUENCIA=$sec_value/SECUENCIA=$new_value/ $CONFDIR/AFRAINST.conf
+	sed -i s/SECUENCIA=$sec_value/SECUENCIA=$new_value/ "$CONFDIR"/AFRAINST.conf
 	#Mover el archivo al directorio /duplicados y le agrego al nombre del archivo la secuencia
 	mv "${$2}/$ORIGEN_FILE" "$DUPDIR/${ORIGEN_FILE}.$SECUENCIA"
 fi
