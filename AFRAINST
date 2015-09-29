@@ -189,6 +189,10 @@ if ! [ -f "$CONFDIR"/AFRAINST.conf ] ; then
 else
     # Ya esta instalado
     estado_instalacion=COMPLETA
+    faltantes_bindir=()
+    faltantes_maedir=()
+    falta_MoverA=No # Si falta MoverA.sh hay que moverlo primero con cuidado especial
+    falta_GraLog=No
     
     # Levantar variables del archivo de configuracion
     BINDIR=`grep BINDIR "$CONFDIR"/AFRAINST.conf | cut -d '=' -f 2`
@@ -204,10 +208,60 @@ else
     ls "$CONFDIR"
     echo
     echo "Directorio de ejecutables: $BINDIR"
+    archivos_bindir=$(ls "$BINDIR")
     ls "$BINDIR"
+    
+    # Verificar presencia de ejecutables
+    if ! [[ "$archivos_bindir" =~ (^|[[:space:]])"GraLog.sh"($|[[:space:]]) ]] ; then # Si falta GraLog
+        falta_GraLog=Si
+    fi
+    if ! [[ "$archivos_bindir" =~ (^|[[:space:]])"MoverA.sh"($|[[:space:]]) ]] ; then # Si falta MoverA
+        falta_MoverA=Si
+    fi
+    if ! [[ "$archivos_bindir" =~ (^|[[:space:]])"Arrancar.sh"($|[[:space:]]) ]] ; then # Si falta Arrancar
+        faltantes_bindir+=("Arrancar.sh")
+    fi
+    if ! [[ "$archivos_bindir" =~ (^|[[:space:]])"Detener.sh"($|[[:space:]]) ]] ; then # Si falta Detener
+        faltantes_bindir+=("Detener.sh")
+    fi
+    if ! [[ "$archivos_bindir" =~ (^|[[:space:]])"AFRAINIC"($|[[:space:]]) ]] ; then # Si falta AFRAINIC
+        faltantes_bindir+=("AFRAINIC")
+    fi
+    if ! [[ "$archivos_bindir" =~ (^|[[:space:]])"AFRARECI"($|[[:space:]]) ]] ; then # Si falta AFRARECI
+        faltantes_bindir+=("AFRARECI")
+    fi
+    if ! [[ "$archivos_bindir" =~ (^|[[:space:]])"AFRAUMBR"($|[[:space:]]) ]] ; then # Si falta AFRAUMBR
+        faltantes_bindir+=("AFRAUMBR")
+    fi
+    if ! [[ "$archivos_bindir" =~ (^|[[:space:]])"AFRALIST"($|[[:space:]]) ]] ; then # Si falta AFRALIST
+        faltantes_bindir+=("AFRALIST")
+    fi
+    
     echo
     echo "Directorio de maestros y tablas: $MAEDIR"
+    archivos_maedir=$(ls "$MAEDIR")
     ls "$MAEDIR"
+    
+    # Verificar presencia de maestros y tablas
+    if ! [[ "$archivos_maedir" =~ (^|[[:space:]])"CdP.mae"($|[[:space:]]) ]] ; then # Si falta CdP.mae
+        faltantes_maedir+=("CdP.mae")
+    fi
+    if ! [[ "$archivos_maedir" =~ (^|[[:space:]])"CdA.mae"($|[[:space:]]) ]] ; then # Si falta CdA.mae
+        faltantes_maedir+=("CdA.mae")
+    fi
+    if ! [[ "$archivos_maedir" =~ (^|[[:space:]])"CdC.mae"($|[[:space:]]) ]] ; then # Si falta CdC.mae
+        faltantes_maedir+=("CdC.mae")
+    fi
+    if ! [[ "$archivos_maedir" =~ (^|[[:space:]])"agentes.mae"($|[[:space:]]) ]] ; then # Si falta agentes.mae
+        faltantes_maedir+=("agentes.mae")
+    fi
+    if ! [[ "$archivos_maedir" =~ (^|[[:space:]])"tllama.tab"($|[[:space:]]) ]] ; then # Si falta tllama.tab
+        faltantes_maedir+=("tllama.tab")
+    fi
+    if ! [[ "$archivos_maedir" =~ (^|[[:space:]])"umbral.tab"($|[[:space:]]) ]] ; then # Si falta umbral.tab
+        faltantes_maedir+=("umbral.tab")
+    fi
+    
     echo
     echo "Directorio de recepción de archivos de llamadas: $NOVEDIR"
     echo
@@ -222,13 +276,30 @@ else
     echo
     echo "Directorio de archivos rechazados: $RECHDIR"
     echo
+    
+    if [ "$faltantes_bindir" != "" ] || [ "$faltantes_maedir" != "" ] || [ $falta_MoverA == Si ] || [ $falta_GraLog == Si ] ; then
+        estado_instalacion=INCOMPLETA
+    fi
+    
     echo "Estado de la instalación: $estado_instalacion"
     echo
     if [ $estado_instalacion == COMPLETA ] ; then
         echo "Proceso de instalación finalizado."
     else 
         # Completar instalacion
-        echo "Componentes faltantes: $faltantes"
+        echo -n "Componentes faltantes: "
+        if [ $falta_MoverA == Si ] ; then
+            echo -n "MoverA.sh "
+        fi
+        if [ $falta_GraLog == Si ] ; then
+            echo -n "GraLog.sh "
+        fi
+        for elemento in ${faltantes_bindir[@]} ; do
+            echo -n "$elemento "
+        done
+        for elemento in ${faltantes_maedir[@]} ; do
+            echo -n "$elemento "
+        done
         echo
         while [ "$opcion4" != Si ] ; do
             obtener_valor opcion4 "¿Desea completar la instalación? (Si-No): " Si
@@ -237,6 +308,23 @@ else
             fi
         done
         
+        # Mover archivos faltantes
+        if [ $falta_MoverA == Si ] ; then
+            if [ $falta_GraLog == Si ] ; then
+                "$GRUPO"/MoverA.sh "$GRUPO/GraLog.sh" "$BINDIR" AFRAINST
+                falta_GraLog=No
+            fi
+            "$GRUPO"/MoverA.sh "$GRUPO/MoverA.sh" "$BINDIR" AFRAINST
+        fi
+        if [ $falta_GraLog == Si ] ; then
+            "$BINDIR"/MoverA.sh "$GRUPO/GraLog.sh" "$BINDIR" AFRAINST
+        fi
+        for elemento in ${faltantes_bindir[@]} ; do
+            "$BINDIR"/MoverA.sh "$GRUPO/$elemento" "$BINDIR" AFRAINST
+        done
+        for elemento in ${faltantes_maedir[@]} ; do
+            "$BINDIR"/MoverA.sh "$GRUPO/$elemento" "$MAEDIR" AFRAINST
+        done
         
     fi
     
