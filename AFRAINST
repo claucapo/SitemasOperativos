@@ -1,8 +1,8 @@
 #!/bin/bash
 # Script para instalar el sistema AFRA-I
 
-GRUPO=$(dirname "$0") # Obtengo el directorio del script
-CONFDIR="$GRUPO"/conf # Directorio del archivo de configuracion
+export GRUPO=$(dirname "$0") # Obtengo el directorio del script
+export CONFDIR="$GRUPO"/conf # Directorio del archivo de configuracion
 BINDIR="$GRUPO"/bin
 MAEDIR="$GRUPO"/mae
 NOVEDIR="$GRUPO"/novedades
@@ -15,10 +15,6 @@ LOGSIZE=400
 LOGEXT=log
 RECHDIR="$GRUPO"/rechazadas
 perl_minimo=5 # Version de Perl necesaria
-
-export GRUPO;export CONFDIR;export BINDIR;export MAEDIR;export NOVEDIR;export DATASIZE
-export ACEPDIR;export PROCDIR;export REPODIR;export LOGDIR;export LOGSIZE;export LOGEXT
-export RECHDIR
 
 # Funciones
 
@@ -44,8 +40,8 @@ function normalizar_path {
 # /Funciones
 
 # Verificar si existe directorio de configuracion
-if [ ! -d conf ] ; then
-    echo "¡No existe directorio de configuración!"
+if ! [ -d conf ] ; then
+    echo "No existe el directorio de configuración. Descomprima el paquete de instalación nuevamente."
     exit
 fi
 

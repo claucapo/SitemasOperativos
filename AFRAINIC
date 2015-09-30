@@ -1,18 +1,152 @@
-#!/usr/bin/env bash
+#!/bin/bash
+# Script para iniciar el sistema AFRA-I
 
-echo "El propósito de este comando es preparar el entorno de ejecución del TP (ambiente)."
+# Verificar si el ambiente ya fue inicializado
+if [ "$BINDIR" != "" ] ; then
+    echo "El ambiente ya fue inicializado. Para reiniciar termine la sesión y ejecute AFRAINIC nuevamente."
+    exit
+fi
 
-echo "Directorio de Configuración: CONFDIR (mostrar path y listar archivos)"
-echo "Directorio de Ejecutables: BINDIR (mostrar path y listar archivos) "
-echo "Directorio de Maestros y Tablas: MAEDIR (mostrar path y listar archivos) "
-echo "Directorio de recepción de archivos de llamadas: NOVEDIR"
-echo "Directorio de Archivos de llamadas Aceptados: ACEPDIR"
-echo "Directorio de Archivos de llamadas Sospechosas: PROCDIR"
-echo "Directorio de Archivos de Reportes de llamadas: REPODIR"
-echo "Directorio de Archivos de Log: LOGDIR (mostrar path y listar archivos) "
-echo "Directorio de Archivos Rechazados: RECHDIR"
-echo "Estado del Sistema: INICIALIZADO"
+# Buscar path GRUPO
+while [ ! -f AFRAINST ] && [ $PWD != "/" ] ; do # Buscar AFRAINST
+    cd ..
+done
 
-echo "¿Desea efectuar la activación de AFRARECI? Si – No"
+# Si no se encontro AFRAINST salir
+if [ ! -f AFRAINST ] && [ $PWD == "/" ] ; then
+    echo "No se pudo encontrar AFRAINST en el directorio raíz. Descomprima el paquete de instalación nuevamente."
+    exit
+fi
 
-echo "AFRARECI corriendo bajo el no.: <Process Id de AFRARECI>"
+export GRUPO=$PWD # Tengo el directorio raiz
+export CONFDIR="$GRUPO/conf"
+
+# Verificar si existe el archivo de configuración
+if ! [ -d "$CONFDIR" ] ; then
+    echo "No existe directorio de configuración. Descomprima el paquete de instalación nuevamente."
+    exit
+fi
+if ! [ -f "$CONFDIR/AFRAINST.conf" ] ; then
+    echo "AFRA-I no está adecuadamente instalado en el sistema. Ejecute AFRAINST."
+    exit
+fi
+
+# Cargo valores del archivo de configuracion
+export BINDIR=`grep BINDIR "$CONFDIR/AFRAINST.conf" | cut -d '=' -f 2`
+export MAEDIR=`grep MAEDIR "$CONFDIR/AFRAINST.conf" | cut -d '=' -f 2`
+export NOVEDIR=`grep NOVEDIR "$CONFDIR/AFRAINST.conf" | cut -d '=' -f 2`
+export ACEPDIR=`grep ACEPDIR "$CONFDIR/AFRAINST.conf" | cut -d '=' -f 2`
+export PROCDIR=`grep PROCDIR "$CONFDIR/AFRAINST.conf" | cut -d '=' -f 2`
+export REPODIR=`grep REPODIR "$CONFDIR/AFRAINST.conf" | cut -d '=' -f 2`
+export LOGDIR=`grep LOGDIR "$CONFDIR/AFRAINST.conf" | cut -d '=' -f 2`
+export RECHDIR=`grep RECHDIR "$CONFDIR/AFRAINST.conf" | cut -d '=' -f 2`
+export DATASIZE=`grep DATASIZE "$CONFDIR/AFRAINST.conf" | cut -d '=' -f 2`
+export LOGSIZE=`grep LOGSIZE "$CONFDIR/AFRAINST.conf" | cut -d '=' -f 2`
+export LOGEXT=`grep LOGEXT "$CONFDIR/AFRAINST.conf" | cut -d '=' -f 2`
+
+# Verificar instalacion completa
+estado_instalacion=COMPLETA
+faltantes_bindir=()
+faltantes_maedir=()
+faltantes_directorios=()
+
+if [ -d "$BINDIR" ] ; then
+    faltantes_directorios+=("Ejecutables")
+else
+    archivos_bindir=$(ls "$BINDIR")
+
+    # Verificar presencia de ejecutables
+    if ! [[ "$archivos_bindir" =~ (^|[[:space:]])"GraLog.sh"($|[[:space:]]) ]] ; then # Si falta GraLog
+        faltantes_bindir+=("GraLog.sh")
+    fi
+    if ! [[ "$archivos_bindir" =~ (^|[[:space:]])"MoverA.sh"($|[[:space:]]) ]] ; then # Si falta MoverA
+        faltantes_bindir+=("MoverA.sh")
+    fi
+    if ! [[ "$archivos_bindir" =~ (^|[[:space:]])"Arrancar.sh"($|[[:space:]]) ]] ; then # Si falta Arrancar
+        faltantes_bindir+=("Arrancar.sh")
+    fi
+    if ! [[ "$archivos_bindir" =~ (^|[[:space:]])"Detener.sh"($|[[:space:]]) ]] ; then # Si falta Detener
+        faltantes_bindir+=("Detener.sh")
+    fi
+    if ! [[ "$archivos_bindir" =~ (^|[[:space:]])"AFRAINIC"($|[[:space:]]) ]] ; then # Si falta AFRAINIC
+        faltantes_bindir+=("AFRAINIC")
+    fi
+    if ! [[ "$archivos_bindir" =~ (^|[[:space:]])"AFRARECI"($|[[:space:]]) ]] ; then # Si falta AFRARECI
+        faltantes_bindir+=("AFRARECI")
+    fi
+    if ! [[ "$archivos_bindir" =~ (^|[[:space:]])"AFRAUMBR"($|[[:space:]]) ]] ; then # Si falta AFRAUMBR
+        faltantes_bindir+=("AFRAUMBR")
+    fi
+    if ! [[ "$archivos_bindir" =~ (^|[[:space:]])"AFRALIST"($|[[:space:]]) ]] ; then # Si falta AFRALIST
+        faltantes_bindir+=("AFRALIST")
+    fi
+fi
+
+if [ -d "$MAEDIR" ] ; then
+    faltantes_directorios+=("Maestros")
+else
+    archivos_maedir=$(ls "$MAEDIR")
+
+    # Verificar presencia de maestros y tablas
+    if ! [[ "$archivos_maedir" =~ (^|[[:space:]])"CdP.mae"($|[[:space:]]) ]] ; then # Si falta CdP.mae
+        faltantes_maedir+=("CdP.mae")
+    fi
+    if ! [[ "$archivos_maedir" =~ (^|[[:space:]])"CdA.mae"($|[[:space:]]) ]] ; then # Si falta CdA.mae
+        faltantes_maedir+=("CdA.mae")
+    fi
+    if ! [[ "$archivos_maedir" =~ (^|[[:space:]])"CdC.mae"($|[[:space:]]) ]] ; then # Si falta CdC.mae
+        faltantes_maedir+=("CdC.mae")
+    fi
+    if ! [[ "$archivos_maedir" =~ (^|[[:space:]])"agentes.mae"($|[[:space:]]) ]] ; then # Si falta agentes.mae
+        faltantes_maedir+=("agentes.mae")
+    fi
+    if ! [[ "$archivos_maedir" =~ (^|[[:space:]])"tllama.tab"($|[[:space:]]) ]] ; then # Si falta tllama.tab
+        faltantes_maedir+=("tllama.tab")
+    fi
+    if ! [[ "$archivos_maedir" =~ (^|[[:space:]])"umbral.tab"($|[[:space:]]) ]] ; then # Si falta umbral.tab
+        faltantes_maedir+=("umbral.tab")
+    fi
+fi
+
+if ! [ -d "$NOVEDIR" ] ; then
+    faltantes_directorios+=("Novedades")
+fi
+if ! [ -d "$ACEPDIR" ] ; then
+    faltantes_directorios+=("Aceptados")
+fi
+if ! [ -d "$PROCDIR" ] ; then
+    faltantes_directorios+=("Sospechosos")
+fi
+if ! [ -d "$REPODIR" ] ; then
+    faltantes_directorios+=("Reportes")
+fi
+if ! [ -d "$LOGDIR" ] ; then
+    faltantes_directorios+=("Logs")
+fi
+if ! [ -d "$RECHDIR" ] ; then
+    faltantes_directorios+=("Rechazados")
+fi
+
+if [ "$faltantes_bindir" != "" ] || [ "$faltantes_maedir" != "" ] || [ $faltantes_directorios != "" ] ; then
+    echo "La instalación de AFRA-I no está completa."
+    echo
+    if [ "$faltantes_bindir" != "" ] || [ "$faltantes_maedir" != "" ] ; then
+        echo -n "Componentes faltantes: "
+        for elemento in ${faltantes_bindir[@]} ; do
+            echo -n "$elemento "
+        done
+        for elemento in ${faltantes_maedir[@]} ; do
+            echo -n "$elemento "
+        done
+        echo
+        echo "Para reparar esto debe ejecutar AFRAINST y seguir los pasos allí especificados."
+    fi
+    if [ $faltantes_directorios != "" ] ; then
+        echo -n "Directorios faltantes: "
+        for elemento in ${faltantes_directorios[@]} ; do
+            echo -n "$elemento "
+        done
+        echo
+        echo "Para reparar esto debe borrar el archivo \"AFRAINST.conf\" en el directorio $CONFDIR, y luego ejecutar AFRAINST para realizar la instalación de AFRA-I nuevamente."
+    fi
+fi
