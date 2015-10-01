@@ -1,3 +1,114 @@
-#!/usr/bin/env bash
+#!/bin/bash 
 
 echo "El propósito de este comando es detectar la llegada de archivos al directorio NOVEDIR y aceptar o rechazar estos archivos según corresponda"
+
+SLEEP_TIME=20
+num_ciclo=0
+
+function log_info(){
+    "$BINDIR"/GraLog.sh "AFRARECI" "$1" "INFO"
+}
+
+function log_error(){
+    "$BINDIR"/GraLog.sh "AFRARECI" "$1" "ERR"
+}
+
+#verifica si un archivo es tipo texto
+function verificar_tipo(){	
+	local f_tipo=`file $1`
+	local tipo=`echo $f_tipo | sed 's/^\(.*\):\(.*\)/\2/g'`	
+
+	if !(echo $tipo | grep '^.*text.*$' &>/dev/null) 
+		then 
+			rechazar_archivo $1
+			log_info "Rechazado  ${1##*/}  - Tipo invalido : $tipo"
+			return 1
+		else
+			return 0
+	fi
+}
+
+function verificar_fecha(){
+	if [ $2 -le $1 -a $1 -le $3 ]
+	 then
+		return 0
+	 else
+		return 1		
+	fi
+}
+
+function rechazar_archivo(){
+	log_info "Movido ${1##*/} - Destino $RECHDIR/${1##*/}"
+	MoverA.sh  $1 $RECHDIR AFRARECI
+	return 0
+}
+
+function get_pid(){
+    local pid=`ps -e | grep '\($BINDIR\)\?/$1.sh' | sed 's/ \?\([0-9]*\).*/\1/' | awk '{print $2}' | head -n 1`
+    echo $pid
+}
+
+function hay_novedades_pendientes(){
+  if [ "$(ls -A $1)" ]
+  then
+    for directorio in $1
+     do
+      local dir=`find $directorio -type f | wc -l`
+	    if [ ! $dir -eq 0 ]
+	    then
+		    return 0
+	    fi
+    done
+  fi
+  return 1
+}
+
+# Si existen archivos en los subdirectorios de ACEPDIR se invoca el comando AFRAUMBR
+# Si se pudo invocar se graba en LOG: AFRAUMBR corriendo bajo el no.: <Process Id de AFRAUMBR>
+# Si hay archivos pero esta corriendo se graba en LOG: Posponer a siguiente Ciclo
+# Si surge algun error se muestra por pantalla
+
+function novedades_pedientes(){
+	if hay_novedades_pendientes $ACEPDIR;
+		then
+		PID=$(get_pid AFRARECI)
+
+		if [ "$PID" = "" ]; 
+		then
+			#ejecutar AFRAUMBR
+			return 0
+		else
+			log_info "Invocacion de AFRAUMBR propuesta para el siguiente ciclo"
+			return 0
+		fi
+	fi
+	return 0
+}
+
+#verfica que los archivos tengan cod_central dentro de maestro
+
+function verificar_cod_central(){
+		
+local cod_central=`echo ${1##*/} | sed 's/^\(.*\)_\(.*\)_\(.*\)_\(.*\)_\(.*\)/\1/g'`
+
+if !(grep "^$cod_central;.*;.*;.*;" "$2" &>/dev/null)
+	then
+		rechazar_archivo $1
+		log_info "Rechazado ${1##*/} - [$cod_central] Central inexistente"
+		return 1
+	else
+		return 0
+fi
+}
+
+
+
+while [[ true ]]; do
+	logInfo "Despertando demonio - Ciclo: $num_ciclo"
+	##procesar_novedades <--- proximamente
+	novedades_pedientes
+	let num_ciclo++
+	log_info "Durmiendo demonio"
+	sleep $SLEEP_TIME
+done
+
