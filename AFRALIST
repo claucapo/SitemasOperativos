@@ -1,8 +1,183 @@
 #!/usr/bin/env perl
 
-print "Programa Perl...\n";
+#use strict;
+#use warnings;
+# Reemplaza el print agregando \n automaticamente
+use feature qw(say);
 
-print "-h (ayuda)\n"
-print "-w(grabar)\n"
-print "-r (consulta)\n"
-print "-s (estadística)\n"
+$VERSION = '1.0'
+
+# =============================================================================
+# Muestra el man page
+# =============================================================================
+sub mostrar_ayuda {
+  print "
+NAME
+     AFRALIST - Consultas y estadisticas de llamadas sospechosas
+
+SYNOPSIS
+     AFRALIST [-r|-s] [FILES ...] [-w] 
+
+DESCRIPTION
+     AFRALIST permite realizar consultas y estadiscas de llamadas
+     sospechozas, tambien permite grabarlas en archivo.
+
+OPTIONS
+     -r   Consulta
+
+     -s config-file
+          Estadistica
+
+     -w   Grabar
+
+     -h   Ayuda
+
+FILES
+     /.../.....conf
+          The system wide configuration file. See foo(5) for fur-
+          ther details.
+
+ENVIRONMENT
+     BINDIR
+          If non-null the full pathname for an  alternate  system
+          wide foo.conf.
+
+DIAGNOSTICS
+     The following diagnostics may be issued on stderr:
+
+     Bad magic number.
+          The input file does not look like an archive file.
+     Old style baz segments.
+          foo  can  only  handle  new  style  baz segments. COBOL
+          object libraries are not supported in this version.
+
+BUGS
+     El nombre del comando no refleja su proposito.
+
+AUTHOR
+     Claudio Anibal Smith <claucapo@gmail.com>
+     Lautaro de los Heros <lautarodelosheros@gmail.com>
+     Nicolas Cian <nicolas.cian@gmail.com>
+     Daniel Diaczun <danieldiaczun@hotmail.com>
+     Adrián Ríssola <adryanpr@hotmail.com>
+     Leandro Rinaldi <rinaldi.leandro@gmail.com>
+
+SEE ALSO
+     La documentacion de todo el sistema AFRA-I se encuentra en el archivo readme.\n";
+  exit 1;
+
+} # Fin: mostrar_ayuda
+
+# =============================================================================
+# Verifica que este correcto el entorno
+# =============================================================================
+sub verificar_entorno {
+
+  # Verificamos que exista la variable de entorno BINDIR
+  # die "No se puede ejecutar: Primero debe correr AFRAINIC para preparar el entorno.\n" if not $BINDIR;
+
+  # No puede correr si ya hay una instancia en ejecucion
+  my @ps = `ps -ef | grep AFRALIST | grep -v grep`;
+  die "Error: AFRALIST ya se esta ejecutando!\n" if @ps.size > 1;
+  
+  return 0
+} # Fin: verifica_entorno
+
+# =============================================================================
+# Actua en funcion de los parametros ingresados
+# =============================================================================
+sub verificar_parametros {
+
+  # Usamos este modulo para parsear los parametros
+  use Getopt::Long;
+  my $ayuda;
+  my $consulta;
+  my $estadistica;
+  my $grabar;
+
+  GetOptions ("h|help|?" => \$ayuda, "r|read=s@" => \$consulta, "s|stat=s@" => \$estadistica, "w|write" => \$grabar)
+  or die("Error: argumentos invalidos. Ver documentacion: AFRALIST -h\n");
+
+  # Muestra la ayuda
+  &mostrar_ayuda if $ayuda;
+
+  # Solo se puede usar -r o -s, nunca los dos a la vez
+  die "Error: argumento [-r] no funciona con argumento [-s]. Ver documentacion: AFRALIST -h\n" if $consulta and $estadistica;
+  # Solo se puede usar -w si se esta usando -r o -s, nunca solo.
+  die "Error: argumento [-w] solo funciona con [-r] o con [-s]. Ver documentacion: AFRALIST -h\n" if $grabar and not ($consulta or $estadistica);
+
+  &resolver_consulta($grabar) if $consulta;
+  &resolver_estadistica($grabar) if $estadistica;
+
+  return 0
+} # Fin: verifica_parametros
+
+# =============================================================================
+# Resuelve consultas sobre los archivos de llamadas sospechosas
+# =============================================================================
+sub resolver_consulta {
+
+  say "resolver_consulta";
+  my $grabar = $_[0];
+
+  # Aca hay que hacer un menu que le permita resolver varias consultas sin salir del programa
+
+  # Debe ingresar todos los archivos sobre los cuales va a consultar
+  # puede ser sobre los archivos de llamadas sospechosas <oficina>_<aniomes> o tambien sobre consultas previas subllamadas.xxx
+  # Proponerle filtrar archivos por oficina: ingrese oficina: _____ y por aniomes: ingrese año mes: _____ 
+  # Proponerle filtrar archivos de subllamadas: desea utilizar archivos de subllamada?: _____ (un_archivo | lista separada por comas | * todas)
+
+  # Una vez que se tiene seleccionados los archivos sobre los cuales se va a trabajar, de permite aplicar estos filtros a los registros:
+  # Filtro por central (una, varias, todas)
+  # Filtro por agente (uno, varios, todos)
+  # Filtro por umbral (uno, varios, todos)
+  # Filtro por tipo de llamada (una, varias, todas)
+  # Filtro por tiempo de conversación (rango)
+  # Filtro por numero A (área y numero de línea) (uno, varios, todos)
+
+  # Se imprime por pantalla todos los registros de esos archivos que cumplan los filtros
+  # Si esta habilitado el flag grabar crea un archivo subllamada.xxx
+
+  return 0
+} # Fin: resolver_consulta
+
+# =============================================================================
+# Resuelve estadisticas sobre los archivos de llamadas sospechosas
+# =============================================================================
+sub resolver_estadistica {
+
+  say "resolver_estadistica";
+  my $grabar = $_[0];
+
+  # Las estadísticas deben permitir responder preguntas tales como:
+  
+  # Cuál es la central con mayor cantidad de llamadas sospechosas? // Cual es el ranking de centrales?
+  #   Mostrar además del código, la descripción de la central
+  
+  # Cuál es la oficina con mayor cantidad de llamadas sospechosas? // Cual es el ranking de oficinas?
+  
+  # Cuál es el agente con mayor cantidad de llamadas sospechosas? // Cual es el ranking de agentes?
+  #   Mostar además del id del agente, el correo electrónico y la oficina a la que pertenece
+  
+  # Cuál es el destino con mayor cantidad de llamadas sospechosas? // Cual es el ranking de destinos?
+  #   Mostrar además del código, el nombre del país o el nombre de la ciudad –provincia según corresponda
+  
+  # Cuál es el ranking de umbrales?
+  #   Para este ranking no evaluar los umbrales con una sola llamada sospechosa.
+
+  # El filtro es el periodo aniollamadamesllamada (un periodo, un rango de periodos, todos los periodos)
+  
+  # En los casos de central, oficina y agente el ranking puede ser por cantidad de segundos (acumular
+  # los tiempos de conversación) o por cantidad de llamadas. Solicitar al usuario que quiere ver: ranking
+  # de tiempo, ranking de cantidad o ambos
+  
+  # Si se indicó -w (grabar) grabar el resultado
+
+  return 0
+} # Fin: resolver_estadistica
+
+# *****************************************************************************
+# MAIN 
+# *****************************************************************************
+verificar_entorno;
+verificar_parametros;
