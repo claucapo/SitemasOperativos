@@ -1,6 +1,14 @@
 #!/bin/bash 
 
-echo "El propósito de este comando es detectar la llegada de archivos al directorio NOVEDIR y aceptar o rechazar estos archivos según corresponda"
+# El propósito de este comando es detectar la llegada de archivos al directorio NOVEDIR 
+#y aceptar o rechazar estos archivos según corresponda"
+# 	Es el segundo en orden de ejecución
+# 	Es un proceso del tipo “Demonio” :
+# 	Se dispara con AFINI o a través del Arrancar
+# 	Se detiene a través del Detener
+# 	Mueve los archivos a través del MoverA
+# 	Graba en el archivo de Log a través del GraLog
+# 	Invoca, si corresponde, el siguiente proceso: AFRAUMBR
 
 SLEEP_TIME=20
 num_ciclo=0
@@ -71,11 +79,12 @@ function hay_novedades_pendientes(){
 function novedades_pedientes(){
 	if hay_novedades_pendientes $ACEPDIR;
 		then
-		PID=$(get_pid AFRARECI)
+		PID=$(get_pid AFRAUMBR)
 
 		if [ "$PID" = "" ]; 
 		then
 			#ejecutar AFRAUMBR
+			#QUIEN LOGUEA QUE ARRANCO? ---> SUPONGO QUE LO HACE EL MISMO
 			return 0
 		else
 			log_info "Invocacion de AFRAUMBR propuesta para el siguiente ciclo"
@@ -89,9 +98,9 @@ function novedades_pedientes(){
 
 function verificar_cod_central(){
 		
-local cod_central=`echo ${1##*/} | sed 's/^\(.*\)_\(.*\)_\(.*\)_\(.*\)_\(.*\)/\1/g'`
+local cod_central=`echo ${1##*/} | sed 's/^\(.*\)_\(.*\)/\1/g'`
 
-if !(grep "^$cod_central;.*;.*;.*;" "$2" &>/dev/null)
+if !(grep "^$cod_central;.*;" "$2" &>/dev/null)
 	then
 		rechazar_archivo $1
 		log_info "Rechazado ${1##*/} - [$cod_central] Central inexistente"
@@ -101,6 +110,25 @@ if !(grep "^$cod_central;.*;.*;.*;" "$2" &>/dev/null)
 fi
 }
 
+function procesar_novedades(){
+	if hay_novedades_pendientes $NOVEDIR
+		then
+		for file in $NOVEDIR
+		do
+			#1) Verificar si es tipo texto
+			#2) Verificar que el formato del nombre del archivo sea correcto
+				#FORMATO CORRECTO: <cod_central>_<aniomesdia>
+			#3) Validar nombre de los archivos
+					#cod_central tiene que estar en el maestro de centrales
+					#aniomesdia tiene que ser fecha valida, maximo un año de antiguedad
+						#y tiene que ser menor que  o igual a la fecha actual
+			#4) Si es valido lo anterior se tienene que pasar a ACEPTADOS
+			#5) Caso de que no cumpla 1 o 2 o 3 rechazar (moverlo a RECHDIR)
+				#logear --> Nombre archivo {Razon del rechazo}
+			#6) Ver si hay novedades pendientes
+			echo "algo"
+		done
+}
 
 
 while [[ true ]]; do
