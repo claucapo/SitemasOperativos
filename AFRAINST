@@ -145,23 +145,23 @@ if ! [ -f "$CONFDIR"/AFRAINST.conf ] ; then
     
     # Mover ejecutables y funciones
     echo "Instalando programas y funciones. . . ."
-    "$GRUPO"/MoverA.sh "$GRUPO"/GraLog.sh "$BINDIR" AFRAINST
-    "$GRUPO"/MoverA.sh "$GRUPO"/MoverA.sh "$BINDIR" AFRAINST
-    "$BINDIR"/MoverA.sh "$GRUPO"/AFRAINIC "$BINDIR" AFRAINST
-    "$BINDIR"/MoverA.sh "$GRUPO"/AFRARECI "$BINDIR" AFRAINST
-    "$BINDIR"/MoverA.sh "$GRUPO"/AFRAUMBR "$BINDIR" AFRAINST
-    "$BINDIR"/MoverA.sh "$GRUPO"/AFRALIST "$BINDIR" AFRAINST
-    "$BINDIR"/MoverA.sh "$GRUPO"/Detener.sh "$BINDIR" AFRAINST
-    "$BINDIR"/MoverA.sh "$GRUPO"/Arrancar.sh "$BINDIR" AFRAINST
+    cp "$GRUPO"/GraLog.sh "$BINDIR"
+    cp "$GRUPO"/MoverA.sh "$BINDIR"
+    cp "$GRUPO"/AFRAINIC "$BINDIR"
+    cp "$GRUPO"/AFRARECI "$BINDIR"
+    cp "$GRUPO"/AFRAUMBR "$BINDIR"
+    cp "$GRUPO"/AFRALIST "$BINDIR"
+    cp "$GRUPO"/Detener.sh "$BINDIR"
+    cp "$GRUPO"/Arrancar.sh "$BINDIR"
     
     # Mover archivos y tablas
     echo "Instalando archivos maestros y tablas. . . ."
-    "$BINDIR"/MoverA.sh "$GRUPO"/CdP.mae "$MAEDIR" AFRAINST
-    "$BINDIR"/MoverA.sh "$GRUPO"/CdA.mae "$MAEDIR" AFRAINST
-    "$BINDIR"/MoverA.sh "$GRUPO"/CdC.mae "$MAEDIR" AFRAINST
-    "$BINDIR"/MoverA.sh "$GRUPO"/agentes.mae "$MAEDIR" AFRAINST
-    "$BINDIR"/MoverA.sh "$GRUPO"/tllama.tab "$MAEDIR" AFRAINST
-    "$BINDIR"/MoverA.sh "$GRUPO"/umbral.tab "$MAEDIR" AFRAINST
+    cp "$GRUPO"/CdP.mae "$MAEDIR"
+    cp "$GRUPO"/CdA.mae "$MAEDIR"
+    cp "$GRUPO"/CdC.mae "$MAEDIR"
+    cp "$GRUPO"/agentes.mae "$MAEDIR"
+    cp "$GRUPO"/tllama.tab "$MAEDIR"
+    cp "$GRUPO"/umbral.tab "$MAEDIR"
     
     # Armar archivo de configuracion
     echo "Actualizando la configuración del sistema. . . ."
@@ -187,8 +187,6 @@ else
     estado_instalacion=COMPLETA
     faltantes_bindir=()
     faltantes_maedir=()
-    falta_MoverA=No # Si falta MoverA.sh hay que moverlo primero con cuidado especial
-    falta_GraLog=No
     
     # Levantar variables del archivo de configuracion
     BINDIR=`grep BINDIR "$CONFDIR"/AFRAINST.conf | cut -d '=' -f 2`
@@ -209,10 +207,10 @@ else
     
     # Verificar presencia de ejecutables
     if ! [[ "$archivos_bindir" =~ (^|[[:space:]])"GraLog.sh"($|[[:space:]]) ]] ; then # Si falta GraLog
-        falta_GraLog=Si
+        faltantes_bindir+=("GraLog.sh")
     fi
     if ! [[ "$archivos_bindir" =~ (^|[[:space:]])"MoverA.sh"($|[[:space:]]) ]] ; then # Si falta MoverA
-        falta_MoverA=Si
+        faltantes_bindir+=("MoverA.sh")
     fi
     if ! [[ "$archivos_bindir" =~ (^|[[:space:]])"Arrancar.sh"($|[[:space:]]) ]] ; then # Si falta Arrancar
         faltantes_bindir+=("Arrancar.sh")
@@ -273,7 +271,7 @@ else
     echo "Directorio de archivos rechazados: $RECHDIR"
     echo
     
-    if [ "$faltantes_bindir" != "" ] || [ "$faltantes_maedir" != "" ] || [ $falta_MoverA == Si ] || [ $falta_GraLog == Si ] ; then
+    if [ "$faltantes_bindir" != "" ] || [ "$faltantes_maedir" != "" ] ; then
         estado_instalacion=INCOMPLETA
     fi
     
@@ -284,12 +282,6 @@ else
     else 
         # Completar instalacion
         echo -n "Componentes faltantes: "
-        if [ $falta_MoverA == Si ] ; then
-            echo -n "MoverA.sh "
-        fi
-        if [ $falta_GraLog == Si ] ; then
-            echo -n "GraLog.sh "
-        fi
         for elemento in ${faltantes_bindir[@]} ; do
             echo -n "$elemento "
         done
@@ -305,21 +297,11 @@ else
         done
         
         # Mover archivos faltantes
-        if [ $falta_MoverA == Si ] ; then
-            if [ $falta_GraLog == Si ] ; then
-                "$GRUPO"/MoverA.sh "$GRUPO/GraLog.sh" "$BINDIR" AFRAINST
-                falta_GraLog=No
-            fi
-            "$GRUPO"/MoverA.sh "$GRUPO/MoverA.sh" "$BINDIR" AFRAINST
-        fi
-        if [ $falta_GraLog == Si ] ; then
-            "$BINDIR"/MoverA.sh "$GRUPO/GraLog.sh" "$BINDIR" AFRAINST
-        fi
         for elemento in ${faltantes_bindir[@]} ; do
-            "$BINDIR"/MoverA.sh "$GRUPO/$elemento" "$BINDIR" AFRAINST
+            cp "$GRUPO/$elemento" "$BINDIR"
         done
         for elemento in ${faltantes_maedir[@]} ; do
-            "$BINDIR"/MoverA.sh "$GRUPO/$elemento" "$MAEDIR" AFRAINST
+            cp "$GRUPO/$elemento" "$MAEDIR"
         done
         
     fi

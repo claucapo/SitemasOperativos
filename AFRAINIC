@@ -2,7 +2,7 @@
 # Script para iniciar el sistema AFRA-I
 
 # Verificar si el ambiente ya fue inicializado
-if [ "$BINDIR" != "" ] ; then
+if [ "$MAEDIR" != "" ] ; then
     echo "El ambiente ya fue inicializado. Para reiniciar termine la sesión y ejecute AFRAINIC nuevamente."
     exit
 fi
@@ -33,7 +33,7 @@ fi
 
 # Cargo valores del archivo de configuracion
 export BINDIR=`grep BINDIR "$CONFDIR/AFRAINST.conf" | cut -d '=' -f 2`
-export MAEDIR=`grep MAEDIR "$CONFDIR/AFRAINST.conf" | cut -d '=' -f 2`
+MAEDIR=`grep MAEDIR "$CONFDIR/AFRAINST.conf" | cut -d '=' -f 2` # Exporto MAEDIR al final, cuando AFRAINIC termina correctamente
 export NOVEDIR=`grep NOVEDIR "$CONFDIR/AFRAINST.conf" | cut -d '=' -f 2`
 export ACEPDIR=`grep ACEPDIR "$CONFDIR/AFRAINST.conf" | cut -d '=' -f 2`
 export PROCDIR=`grep PROCDIR "$CONFDIR/AFRAINST.conf" | cut -d '=' -f 2`
@@ -149,4 +149,58 @@ if [ "$faltantes_bindir" != "" ] || [ "$faltantes_maedir" != "" ] || [ $faltante
         echo
         echo "Para reparar esto debe borrar el archivo \"AFRAINST.conf\" en el directorio $CONFDIR, y luego ejecutar AFRAINST para realizar la instalación de AFRA-I nuevamente."
     fi
+    exit
 fi
+
+# Verificar permisos
+archivos=("$BINDIR/AFRARECI" "$BINDIR/AFRAUMBR" "$BINDIR/AFRALIST" "$MAEDIR/CdP.mae" "$MAEDIR/CdA.mae" "$MAEDIR/CdC.mae" "$MAEDIR/agentes.mae" "$MAEDIR/tllama.tab" "$MAEDIR/umbral.tab")
+for archivo in ${archivos[@]} ; do
+    if ! [ -x -r "$archivo" ] ; then # Si no se puede leer o ejecutar
+        chmod -f 777 "$archivo"
+        if ! [ -x -r "$archivo" ] ; then
+            echo "No es posible cambiar los permisos del archivo $archivo."
+            exit 
+        fi
+    fi
+done
+
+# Inicializar ambiente
+echo "Directorio de configuración: $CONFDIR"
+ls "$CONFDIR"
+echo
+echo "Directorio de ejecutables: $BINDIR"
+ls "$BINDIR"
+echo
+echo "Directorio de maestros y tablas: $MAEDIR"
+ls "$MAEDIR"
+echo
+echo "Directorio de recepción de archivos de llamadas: $NOVEDIR"
+echo
+echo "Directorio de archivos de llamadas aceptadas: $ACEPDIR"
+echo
+echo "Directorio de archivos de llamadas sospechosas: $PROCDIR"
+echo
+echo "Directorio de archivos de reportes de llamadas: $REPODIR"
+echo
+echo "Directorio de archivos de log: $LOGDIR"
+ls "$LOGDIR"
+echo
+echo "Directorio de archivos rechazados: $RECHDIR"
+echo
+echo "Estado del sistema: INICIALIZADO"
+echo
+export MAEDIR # El ambiente queda inicializado
+
+# Arrancar AFRARECI
+while [ "$opcion" != Si ] ; do
+    echo "¿Desea ejecutar el demonio AFRARECI? (Si-No): "
+    read opcion
+    if [ -z "$opcion" ] ; then
+        opcion=Si # Opcion por default
+    fi
+    if [ "$opcion" == No ] ; then
+        echo "Para ejecutar el demonio AFRARECI utilice el siguiente comando: Arrancar.sh AFRARECI"
+        exit
+    fi
+done
+"$BINDIR/Arrancar.sh" AFRARECI
