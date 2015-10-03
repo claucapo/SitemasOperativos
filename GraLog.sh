@@ -29,17 +29,13 @@ ERROR_POR_PARAMETROS=-2
 where="$1"	#desde donde se lanza script
 why="$2"		#mensaje que se quiere loguear
 
-function division(){ # la necesito para calcular el tamaño en kb
-	echo $( ($1 + $2/2) / $2)
-}
-
 function maxSizeHandler(){
 	tamanioArchivoBytes=`stat -c %s "$archivoLog"` #obtengo la cantidad de bytes
-	tamanioArchivoKbytes=$(division tamanioArchivoBytes BYTES_IN_KB)
-	if [ $TAMANIO_kb -gt $LOGSIZE ]
+	tamanioArchivoKbytes=$(($tamanioArchivoBytes / $BYTES_IN_KB))
+	if [ $tamanioArchivoKbytes -gt $LOGSIZE ]
 	then
 		temp='templog.log'
-		echo " Log Excedido. " >> $temp 
+		echo "Log Excedido." >> $temp 
 		tail -n 50 "$archivoLog" >> $temp 		#agrego las ultimas 50 lineas del log viejo al nuevo.
 		rm "$archivoLog"
 		mv $temp "$archivoLog"

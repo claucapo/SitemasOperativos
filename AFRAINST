@@ -11,12 +11,17 @@ ACEPDIR="$GRUPO"/aceptadas
 PROCDIR="$GRUPO"/sospechosas
 REPODIR="$GRUPO"/reportes
 LOGDIR="$GRUPO"/log
-LOGSIZE=400
+export LOGSIZE=400
 LOGEXT=log
 RECHDIR="$GRUPO"/rechazadas
 perl_minimo=5 # Version de Perl necesaria
 
 # Funciones
+
+# $1: Mensaje a loguear ; $2: Tipo del mensaje
+function grabar_en_log {
+    $GRUPO/GraLog.sh AFRAINST "$1" "$2"
+}
 
 # $1: Variable donde guardar el valor ; $2: Mensaje a mostrar ; $3: Opcion por default
 function obtener_valor {
@@ -27,6 +32,7 @@ function obtener_valor {
         opcion="$3" # Opcion por default
     fi
     eval "$1='$opcion'"
+    grabar_en_log "$2""$opcion" "INFO"
 }
 
 # $1: Variable donde está el path ; $2: Path
@@ -41,6 +47,7 @@ function normalizar_path {
 
 # Verificar si existe directorio de configuracion
 if ! [ -d conf ] ; then
+    grabar_en_log "No existe el directorio de configuración." "ERR"
     echo "No existe el directorio de configuración. Descomprima el paquete de instalación nuevamente."
     exit
 fi
@@ -52,6 +59,7 @@ if ! [ -f "$CONFDIR"/AFRAINST.conf ] ; then
     # Verificar version de Perl
     version_perl=`(perl -v) | sed -n "s-^This is perl \([0-9]*\).*-\1-p"`
     if [ ! $version_perl -ge $perl_minimo ] ; then
+        grabar_en_log "No cuenta con Perl $perl_minimo o superior." "ERR" 
         echo -e "Para ejecutar el sistema AFRA-I es necesario contar con Perl 5 o superior.\n\nEfectúe su instalación e inténtelo nuevamente.\n\nProceso de instalación cancelado." 
         exit
     fi
@@ -85,6 +93,7 @@ if ! [ -f "$CONFDIR"/AFRAINST.conf ] ; then
         disponible=`df -BM | tail -n 1 | tr -s ' ' | cut -d' ' -f 4`
         disponible="${disponible%?}" # Saco la M del final
         if [[ $disponible < $DATASIZE ]] ; then
+            grabar_en_log "Insuficiente espacio en disco. Espacio disponible: " $disponible "MB. Espacio requerido: " $DATASIZE "MB. Inténtelo nuevamente." "ERR"
             echo -e "Insuficiente espacio en disco.\n\nEspacio disponible: " $disponible "MB.\n\nEspacio requerido: " $DATASIZE "MB.\n\nInténtelo nuevamente."
             exit
         fi
@@ -139,11 +148,13 @@ if ! [ -f "$CONFDIR"/AFRAINST.conf ] ; then
     done
     
     # Creacion de estructuras de directorio
+    grabar_en_log "Creando estructuras de directorio. . . ." "INFO"
     echo "Creando estructuras de directorio. . . ."
     mkdir -p "$BINDIR";mkdir -p "$MAEDIR";mkdir -p "$NOVEDIR";mkdir -p "$ACEPDIR";mkdir -p "$PROCDIR"/proc
     mkdir -p "$REPODIR";mkdir -p "$LOGDIR";mkdir -p "$RECHDIR"/llamadas
     
     # Mover ejecutables y funciones
+    grabar_en_log "Instalando programas y funciones. . . ." "INFO"
     echo "Instalando programas y funciones. . . ."
     cp "$GRUPO"/GraLog.sh "$BINDIR"
     cp "$GRUPO"/MoverA.sh "$BINDIR"
@@ -155,6 +166,7 @@ if ! [ -f "$CONFDIR"/AFRAINST.conf ] ; then
     cp "$GRUPO"/Arrancar.sh "$BINDIR"
     
     # Mover archivos y tablas
+    grabar_en_log "Instalando archivos maestros y tablas. . . ." "INFO"
     echo "Instalando archivos maestros y tablas. . . ."
     cp "$GRUPO"/CdP.mae "$MAEDIR"
     cp "$GRUPO"/CdA.mae "$MAEDIR"
@@ -164,6 +176,7 @@ if ! [ -f "$CONFDIR"/AFRAINST.conf ] ; then
     cp "$GRUPO"/umbral.tab "$MAEDIR"
     
     # Armar archivo de configuracion
+    grabar_en_log "Actualizando la configuración del sistema. . . ." "INFO"
     echo "Actualizando la configuración del sistema. . . ."
     echo 'GRUPO='"$GRUPO" >> "$CONFDIR/AFRAINST.conf"
     echo 'BINDIR='"$BINDIR" >> "$CONFDIR/AFRAINST.conf"
@@ -180,6 +193,7 @@ if ! [ -f "$CONFDIR"/AFRAINST.conf ] ; then
     echo 'SECUENCIA=0' >> "$CONFDIR/AFRAINST.conf"
     
     # Instalacion finalizada
+    grabar_en_log "Instalación CONCLUIDA" "INFO"
     echo "Instalación CONCLUIDA"
     
 else
@@ -199,10 +213,14 @@ else
     RECHDIR=`grep RECHDIR "$CONFDIR"/AFRAINST.conf | cut -d '=' -f 2`
     
     echo "Directorio de configuración: $CONFDIR"
+    archivos_confdir=$(ls "$CONFDIR")
+    grabar_en_log "Directorio de configuración: $CONFDIR $archivos_confdir" "INFO"
     ls "$CONFDIR"
     echo
+    
     echo "Directorio de ejecutables: $BINDIR"
     archivos_bindir=$(ls "$BINDIR")
+    grabar_en_log "Directorio de ejecutables: $BINDIR $archivos_bindir" "INFO"
     ls "$BINDIR"
     
     # Verificar presencia de ejecutables
@@ -234,6 +252,7 @@ else
     echo
     echo "Directorio de maestros y tablas: $MAEDIR"
     archivos_maedir=$(ls "$MAEDIR")
+    grabar_en_log "Directorio de maestros y tablas: $MAEDIR $archivos_maedir" "INFO"
     ls "$MAEDIR"
     
     # Verificar presencia de maestros y tablas
@@ -257,17 +276,24 @@ else
     fi
     
     echo
+    grabar_en_log "Directorio de recepción de archivos de llamadas: $NOVEDIR" "INFO"
     echo "Directorio de recepción de archivos de llamadas: $NOVEDIR"
     echo
+    grabar_en_log "Directorio de archivos de llamadas aceptadas: $ACEPDIR" "INFO"
     echo "Directorio de archivos de llamadas aceptadas: $ACEPDIR"
     echo
+    grabar_en_log "Directorio de archivos de llamadas sospechosas: $PROCDIR" "INFO"
     echo "Directorio de archivos de llamadas sospechosas: $PROCDIR"
     echo
+    grabar_en_log "Directorio de archivos de reportes de llamadas: $REPODIR" "INFO"
     echo "Directorio de archivos de reportes de llamadas: $REPODIR"
     echo
     echo "Directorio de archivos de log: $LOGDIR"
+    archivos_logdir=$(ls "$LOGDIR")
+    grabar_en_log "Directorio de archivos de log: $LOGDIR $archivos_logdir" "INFO"
     ls "$LOGDIR"
     echo
+    grabar_en_log "Directorio de archivos rechazados: $RECHDIR" "INFO"
     echo "Directorio de archivos rechazados: $RECHDIR"
     echo
     
@@ -275,9 +301,11 @@ else
         estado_instalacion=INCOMPLETA
     fi
     
+    grabar_en_log "Estado de la instalación: $estado_instalacion" "INFO"
     echo "Estado de la instalación: $estado_instalacion"
     echo
     if [ $estado_instalacion == COMPLETA ] ; then
+        grabar_en_log "Proceso de instalación finalizado." "INFO"
         echo "Proceso de instalación finalizado."
     else 
         # Completar instalacion
