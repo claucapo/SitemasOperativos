@@ -1,8 +1,18 @@
 #!/bin/bash
 # Script para iniciar el sistema AFRA-I
 
+# Funciones
+
+# $1: Mensaje a loguear ; $2: Tipo del mensaje
+function grabar_en_log {
+    $BINDIR/GraLog.sh AFRAINIC "$1" "$2"
+}
+
+# /Funciones
+
 # Verificar si el ambiente ya fue inicializado
 if [ "$MAEDIR" != "" ] ; then
+    grabar_en_log "El ambiente ya fue inicializado. Para reiniciar termine la sesión y ejecute AFRAINIC nuevamente." "WAR"
     echo "El ambiente ya fue inicializado. Para reiniciar termine la sesión y ejecute AFRAINIC nuevamente."
     exit
 fi
@@ -128,6 +138,7 @@ if ! [ -d "$RECHDIR" ] ; then
 fi
 
 if [ "$faltantes_bindir" != "" ] || [ "$faltantes_maedir" != "" ] || [ $faltantes_directorios != "" ] ; then
+    grabar_en_log "La instalación de AFRA-I no está completa." "ERR"
     echo "La instalación de AFRA-I no está completa."
     echo
     if [ "$faltantes_bindir" != "" ] || [ "$faltantes_maedir" != "" ] ; then
@@ -158,6 +169,7 @@ for archivo in ${archivos[@]} ; do
     if ! [ -x -r "$archivo" ] ; then # Si no se puede leer o ejecutar
         chmod -f 777 "$archivo"
         if ! [ -x -r "$archivo" ] ; then
+            grabar_en_log "No es posible cambiar los permisos del archivo $archivo." "ERR"
             echo "No es posible cambiar los permisos del archivo $archivo."
             exit 
         fi
@@ -166,27 +178,41 @@ done
 
 # Inicializar ambiente
 echo "Directorio de configuración: $CONFDIR"
+archivos_confdir=$(ls "$CONFDIR")
+grabar_en_log "Directorio de configuración: $CONFDIR $archivos_confdir" "INFO"
 ls "$CONFDIR"
 echo
 echo "Directorio de ejecutables: $BINDIR"
+archivos_bindir=$(ls "$BINDIR")
+grabar_en_log "Directorio de ejecutables: $BINDIR $archivos_bindir" "INFO"
 ls "$BINDIR"
 echo
 echo "Directorio de maestros y tablas: $MAEDIR"
+archivos_maedir=$(ls "$MAEDIR")
+grabar_en_log "Directorio de maestros y tablas: $MAEDIR $archivos_maedir" "INFO"
 ls "$MAEDIR"
 echo
+grabar_en_log "Directorio de recepción de archivos de llamadas: $NOVEDIR" "INFO"
 echo "Directorio de recepción de archivos de llamadas: $NOVEDIR"
 echo
+grabar_en_log "Directorio de archivos de llamadas aceptadas: $ACEPDIR" "INFO"
 echo "Directorio de archivos de llamadas aceptadas: $ACEPDIR"
 echo
+grabar_en_log "Directorio de archivos de llamadas sospechosas: $PROCDIR" "INFO"
 echo "Directorio de archivos de llamadas sospechosas: $PROCDIR"
 echo
+grabar_en_log "Directorio de archivos de reportes de llamadas: $REPODIR" "INFO"
 echo "Directorio de archivos de reportes de llamadas: $REPODIR"
 echo
 echo "Directorio de archivos de log: $LOGDIR"
+archivos_logdir=$(ls "$LOGDIR")
+grabar_en_log "Directorio de archivos de log: $LOGDIR $archivos_logdir" "INFO"
 ls "$LOGDIR"
 echo
+grabar_en_log "Directorio de archivos rechazados: $RECHDIR" "INFO"
 echo "Directorio de archivos rechazados: $RECHDIR"
 echo
+grabar_en_log "Estado del sistema: INICIALIZADO" "INFO"
 echo "Estado del sistema: INICIALIZADO"
 echo
 export MAEDIR # El ambiente queda inicializado
@@ -195,6 +221,7 @@ export MAEDIR # El ambiente queda inicializado
 while [ "$opcion" != Si ] ; do
     echo "¿Desea ejecutar el demonio AFRARECI? (Si-No): "
     read opcion
+    grabar_en_log "¿Desea ejecutar el demonio AFRARECI? (Si-No): $opcion" "INFO"
     if [ -z "$opcion" ] ; then
         opcion=Si # Opcion por default
     fi
