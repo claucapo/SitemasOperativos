@@ -164,7 +164,7 @@ if [ "$faltantes_bindir" != "" ] || [ "$faltantes_maedir" != "" ] || [ "$faltant
 fi
 
 # Verificar permisos
-archivos=("$BINDIR/AFRARECI" "$BINDIR/AFRAUMBR" "$BINDIR/AFRALIST" "$MAEDIR/CdP.mae" "$MAEDIR/CdA.mae" "$MAEDIR/CdC.mae" "$MAEDIR/agentes.mae" "$MAEDIR/tllama.tab" "$MAEDIR/umbral.tab")
+archivos=("$BINDIR/AFRARECI" "$BINDIR/AFRAUMBR" "$BINDIR/AFRALIST" "$BINDIR/Arrancar.sh" "$BINDIR/Detener.sh" "$BINDIR/GraLog.sh" "$BINDIR/MoverA.sh" "$MAEDIR/CdP.mae" "$MAEDIR/CdA.mae" "$MAEDIR/CdC.mae" "$MAEDIR/agentes.mae" "$MAEDIR/tllama.tab" "$MAEDIR/umbral.tab")
 for archivo in ${archivos[@]} ; do
     if [ ! -x "$archivo" ] || [ ! -r "$archivo" ] ; then # Si no se puede leer o ejecutar
         chmod -f 777 "$archivo"
