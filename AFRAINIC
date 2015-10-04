@@ -60,7 +60,7 @@ faltantes_bindir=()
 faltantes_maedir=()
 faltantes_directorios=()
 
-if [ -d "$BINDIR" ] ; then
+if ! [ -d "$BINDIR" ] ; then
     faltantes_directorios+=("Ejecutables")
 else
     archivos_bindir=$(ls "$BINDIR")
@@ -92,7 +92,7 @@ else
     fi
 fi
 
-if [ -d "$MAEDIR" ] ; then
+if ! [ -d "$MAEDIR" ] ; then
     faltantes_directorios+=("Maestros")
 else
     archivos_maedir=$(ls "$MAEDIR")
@@ -137,7 +137,7 @@ if ! [ -d "$RECHDIR" ] ; then
     faltantes_directorios+=("Rechazados")
 fi
 
-if [ "$faltantes_bindir" != "" ] || [ "$faltantes_maedir" != "" ] || [ $faltantes_directorios != "" ] ; then
+if [ "$faltantes_bindir" != "" ] || [ "$faltantes_maedir" != "" ] || [ "$faltantes_directorios" != "" ] ; then
     grabar_en_log "La instalación de AFRA-I no está completa." "ERR"
     echo "La instalación de AFRA-I no está completa."
     echo
@@ -166,9 +166,9 @@ fi
 # Verificar permisos
 archivos=("$BINDIR/AFRARECI" "$BINDIR/AFRAUMBR" "$BINDIR/AFRALIST" "$MAEDIR/CdP.mae" "$MAEDIR/CdA.mae" "$MAEDIR/CdC.mae" "$MAEDIR/agentes.mae" "$MAEDIR/tllama.tab" "$MAEDIR/umbral.tab")
 for archivo in ${archivos[@]} ; do
-    if ! [ -x -r "$archivo" ] ; then # Si no se puede leer o ejecutar
+    if [ ! -x "$archivo" ] || [ ! -r "$archivo" ] ; then # Si no se puede leer o ejecutar
         chmod -f 777 "$archivo"
-        if ! [ -x -r "$archivo" ] ; then
+        if [ ! -x "$archivo" ] || [ ! -r "$archivo" ] ; then
             grabar_en_log "No es posible cambiar los permisos del archivo $archivo." "ERR"
             echo "No es posible cambiar los permisos del archivo $archivo."
             exit 
@@ -219,7 +219,7 @@ export MAEDIR # El ambiente queda inicializado
 
 # Arrancar AFRARECI
 while [ "$opcion" != Si ] ; do
-    echo "¿Desea ejecutar el demonio AFRARECI? (Si-No): "
+    echo -n "¿Desea ejecutar el demonio AFRARECI? (Si-No): "
     read opcion
     grabar_en_log "¿Desea ejecutar el demonio AFRARECI? (Si-No): $opcion" "INFO"
     if [ -z "$opcion" ] ; then

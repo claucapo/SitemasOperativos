@@ -69,7 +69,7 @@ case "$1" in
 		archivoLog="$LOGDIR/$where.log" ;;
 	AFRAINST)
 		archivoLog="$GRUPO/conf/$where.log" ;;
-	AFRANIC)
+	AFRAINIC)
 		archivoLog="$LOGDIR/$where.log" ;;
 	AFRARECI)
 		archivoLog="$LOGDIR/$where.log" ;;
