@@ -62,7 +62,7 @@ function aceptar_archivo(){
 }
 
 function get_pid(){
-    local pid=`ps -e | grep '\($BINDIR\)\?/$1.sh' | sed 's/ \?\([0-9]*\).*/\1/' | awk '{print $2}' | head -n 1`
+    local pid=`ps -e | grep '\($BINDIR\)\?/$1.sh' | sed 's/ \?\([0-9]*\).*/\1/' | awk '{print $1}' | head -n 1`
     echo $pid
 }
 
