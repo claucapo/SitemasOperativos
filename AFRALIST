@@ -105,6 +105,8 @@ sub verificar_parametros {
   die "Error: argumento [-r] no funciona con argumento [-s]. Ver documentacion: AFRALIST -h\n" if $consulta and $estadistica;
   # Solo se puede usar -w si se esta usando -r o -s, nunca solo.
   die "Error: argumento [-w] solo funciona con [-r] o con [-s]. Ver documentacion: AFRALIST -h\n" if $grabar and not ($consulta or $estadistica);
+  # Debe utilizar alguno de los dos -r o -s
+  die "Error: especificar argumento [-r|-s]. Ver documentacion: AFRALIST -h\n" if not $consulta and not $estadistica;
 
   &resolver_consulta($grabar) if $consulta;
   &resolver_estadistica($grabar) if $estadistica;
@@ -124,8 +126,8 @@ sub clear {
 # Elimina duplicados de un array
 # =============================================================================
 sub uniq {
-    my %seen;
-    grep !$seen{$_}++, @_;
+  my %seen;
+  grep !$seen{$_}++, @_;
 }
 
 # =============================================================================
@@ -134,31 +136,54 @@ sub uniq {
 sub resolver_consulta {
   my $grabar = $_[0];
 
-  # Aca hay que hacer un menu que le permita resolver varias consultas sin salir del programa
-
   # Debe ingresar todos los archivos sobre los cuales va a consultar
   # puede ser sobre los archivos de llamadas sospechosas <oficina>_<aniomes> o tambien sobre consultas previas subllamadas.xxx
-  # Proponerle filtrar archivos por oficina: ingrese oficina: _____ y por aniomes: ingrese año mes: _____ 
-  # Proponerle filtrar archivos de subllamadas: desea utilizar archivos de subllamada?: _____ (un_archivo | lista separada por comas | * todas)
+  # Proponerle filtrar archivos por oficina: ingrese oficina: _____ y por aniomes: ingrese año mes: _____  (uno, varios, todos)
+  # Proponerle filtrar archivos de subllamadas (uno, varias, todas)
 
+  # SELECCION DE ARCHIVOS
   my @arch_sosp_disponibles = glob "PROCDIR/*";
-  # Quitamos la ruta al archivo
   @arch_sosp_disponibles = map m|([^/]+)$|, @arch_sosp_disponibles;
   my @arch_prev_disponibles = glob "REPODIR/*";
-  # Quitamos la ruta al archivo
   @arch_prev_disponibles = map m|([^/]+)$|, @arch_prev_disponibles;
   push(@arch_disponibles, @arch_sosp_disponibles);
   push(@arch_disponibles, @arch_prev_disponibles);
   my @arch_seleccionados;
 
-  $op0 = "";
+  # SELECCION DE CENTRALES
+  my @centrales_disponibles;
+  open(my $fh, "<", "datos/centrales.csv") or die "No se pudo abrir el archivo: $!\n";
+  while(<$fh>) { chomp; push(@centrales_disponibles, $_); } 
+  close $fh;
+  my @centrales_seleccionadas;
+
+  # SELECCION DE AGENTES
+  my @agentes_disponibles;
+  open(my $fh, "<", "datos/agentes.csv") or die "No se pudo abrir el archivo: $!\n";
+  while(<$fh>) { chomp; 
+    $_ =~ /.*;.*;(.*);.*;.*/ || next; 
+    push(@agentes_disponibles, $1); } 
+  close $fh;
+  my @agentes_seleccionados;
+
+  # SELECCION TIPO DE LLAMADA
+  my @tipos_disponibles = qw(LOC DDN DDI);
+  my @tipos_seleccionados;
+
   while ($op0 != 4) {
+    $cant_seleccionados = scalar @arch_seleccionados;
+    $cant_filtros = 0;
+    $cant_filtros++ if scalar(@centrales_seleccionadas) > 0;
+    $cant_filtros++ if scalar(@agentes_seleccionados) > 0;
+    $cant_filtros++ if scalar(@umbrales_seleccionados) > 0;
+    $cant_filtros++ if scalar(@tipos_seleccionados) > 0;
+    $cant_filtros++ if $desde_conversacion ne '';
+    $cant_filtros++ if scalar(@numeros_seleccionados) > 0;
     &clear;
     say "*****************************************";
     say "MENU : Principal";
-    $cant_seleccionados = scalar @arch_seleccionados;
     say "1 - Seleccionar Archivos ($cant_seleccionados archivos)";
-    say "2 - Seleccionar Filtros";
+    say "2 - Seleccionar Filtros ($cant_filtros filtros)";
     if ($grabar) { 
       say "3 - Generar Reporte en Archivo";
     } else {
@@ -167,10 +192,11 @@ sub resolver_consulta {
     say "4 - Salir";
     say "*****************************************";
     say "Seleccione opcion y presione enter.";
-    $op0=<STDIN>;
+    $op0 = <STDIN>;
     if ($op0 == 1) {
-      $op1 = "";
-      while ($op1 != 1) {
+      # Selecciona archivos
+      $filtro = '';
+      while ($filtro ne 'T') {
         &clear;
         say "*****************************************";
         say "MENU : Seleccionar Archivos";
@@ -180,16 +206,13 @@ sub resolver_consulta {
         print join(" ", @arch_seleccionados); print("\n");
         say "*****************************************";
         say "Agregar archivo por oficina o aniomes, blanco para seleccionar todos, T para terminar, B para borrar todos:";
-        chomp($filtro1 = <STDIN>);
-        say $filtro1;
-        if ($filtro1 eq "T") {
-          # Termina la seleccion
-          $op1 = 1;
-        } elsif ($filtro1 eq "B") {
-          # Borrar toda la seleccion
-          @arch_seleccionados = ();
+        chomp($filtro = <STDIN>);
+        if ($filtro eq "T") {
+          # Sale sin filtrar
+        } elsif ($filtro eq "B") {
+          @arch_seleccionados = (); # Borrar toda la seleccion
         } else {
-          push(@arch_seleccionados, grep(/.*$filtro1.*/, @arch_disponibles));
+          push(@arch_seleccionados, grep(/.*$filtro.*/, @arch_disponibles));
           @arch_seleccionados = uniq(@arch_seleccionados);
         }
       }
@@ -197,25 +220,142 @@ sub resolver_consulta {
     if ($op0 == 2) {
       $op2 = "";
       while ($op2 != 7) {
+        $cant_centrales = scalar @centrales_seleccionadas;
+        $cant_agentes = scalar @agentes_seleccionados;
+        $cant_umbrales = scalar @umbrales_seleccionados;
+        $cant_numeros = scalar @numeros_seleccionados;
         &clear;
         say "*****************************************";
         say "MENU : Seleccionar Filtros";
-        say "1 - Central";
-        say "2 - Agente";
-        say "3 - Umbral";
-        say "4 - Tipo de llamada";
-        say "5 - Tiempo de conversacion";
-        say "6 - Numero A";
+        say "1 - Central ($cant_centrales centrales)";
+        say "2 - Agente ($cant_agentes agentes)";
+        say "3 - Umbral ($cant_umbrales umbral)";
+        say "4 - Tipo de llamada (@tipos_seleccionados)";
+        say "5 - Tiempo conversacion (desde $desde_conversacion hasta $hasta_conversacion)";
+        say "6 - Numero A ($cant_numeros numeros)";
         say "7 - Menu principal";
         say "*****************************************";
         say "Seleccione opcion y presione enter.";
-        $op2=<STDIN>;
+        $op2 = <STDIN>;
         if ($op2 == 1) {
-          last;
+          # Selecciona centrales
+          $filtro = '';
+          while ($filtro ne 'T') {
+            &clear;
+            say "*****************************************";
+            say "MENU : Seleccionar Centrales";
+            say "Centrales disponibles: ";
+            print join(" ", @centrales_disponibles); print("\n");
+            say "Centrales seleccionadas: ";
+            print join(" ", @centrales_seleccionadas); print("\n");
+            say "*****************************************";
+            say "Agregar por codigo de central, blanco para seleccionar todas, T para terminar, B para borrar todas:";
+            chomp($filtro = <STDIN>);
+            if ($filtro eq "T") {
+              # Sale sin filtrar
+            } elsif ($filtro eq "B") {
+              @centrales_seleccionadas = (); # Borrar toda la seleccion
+            } else {
+              push(@centrales_seleccionadas, grep(/$filtro;.*/, @centrales_disponibles));
+              @centrales_seleccionadas = uniq(@centrales_seleccionadas);
+            }
+          }
+        }
+        if ($op2 == 2) {
+          # Selecciona agentes
+          $filtro = '';
+          while ($filtro ne 'T') {
+            &clear;
+            say "*****************************************";
+            say "MENU : Seleccionar Agentes";
+            say "Agentes disponibles: ";
+            print join(" ", @agentes_disponibles); print("\n");
+            say "Agentes seleccionadas: ";
+            print join(" ", @agentes_seleccionados); print("\n");
+            say "*****************************************";
+            say "Agregar por codigo de agente, blanco para seleccionar todas, T para terminar, B para borrar todas:";
+            chomp($filtro = <STDIN>);
+            if ($filtro eq "T") {
+              # Sale sin filtrar
+            } elsif ($filtro eq "B") {
+              @agentes_seleccionados = (); # Borrar toda la seleccion
+            } else {
+              push(@agentes_seleccionados, grep(/^$filtro.*/, @agentes_disponibles));
+              @agentes_seleccionados = uniq(@agentes_seleccionados);
+            }
+          }
+        }
+        if ($op2 == 3) {
+          # Selecciona umbrales
+          
+        }
+        if ($op2 == 4) {
+          # Selecciona tipo de llamada
+          $filtro = '';
+          while ($filtro ne 'T') {
+            &clear;
+            say "*****************************************";
+            say "MENU : Seleccionar Tipos";
+            say "Tipos disponibles: ";
+            print join(" ", @tipos_disponibles); print("\n");
+            say "Tipos seleccionadas: ";
+            print join(" ", @tipos_seleccionados); print("\n");
+            say "*****************************************";
+            say "Agregar por codigo de agente, blanco para seleccionar todas, T para terminar, B para borrar todas:";
+            chomp($filtro = <STDIN>);
+            if ($filtro eq "T") {
+              # Sale sin filtrar
+            } elsif ($filtro eq "B") {
+              @tipos_seleccionados = (); # Borrar toda la seleccion
+            } else {
+              push(@tipos_seleccionados, grep(/$filtro/, @tipos_disponibles));
+              @tipos_seleccionados = uniq(@tipos_seleccionados);
+            }
+          }
+        }
+        if ($op2 == 5) {
+          # Selecciona rango conversacion
+          $filtro = '';
+          while ($filtro ne 'T') {
+            &clear;
+            say "*****************************************";
+            say "MENU : Seleccionar Rango Conversacion";
+            say "*****************************************";
+            say "Desde: (formato )";
+            chomp($desde_conversacion = <STDIN>);
+            say "Hasta: (formato )";
+            chomp($hasta_conversacion = <STDIN>);
+            $filtro = "T";
+          }
+        }
+        if ($op2 == 6) {
+          # Selecciona numeros
+          $filtro = '';
+          while ($filtro ne 'T') {
+            &clear;
+            say "*****************************************";
+            say "MENU : Seleccionar Numeros A";
+            say "Numeros seleccionados: ";
+            print join(" ", @numeros_seleccionados); print("\n");
+            say "*****************************************";
+            say "Agregar numero A (formato ), T para terminar, B para borrar todos:";
+            chomp($filtro = <STDIN>);
+            if ($filtro eq "T") {
+              # Sale sin agregar
+            } elsif ($filtro eq "B") {
+              @numeros_seleccionados = (); # Borrar toda la seleccion
+            } else {
+              push(@numeros_seleccionados, $filtro);
+              @numeros_seleccionados = uniq(@numeros_seleccionados);
+            }
+          }
         }
       }
     }
     if ($op0 == 3) { 
+      say "*****************************************";
+      say "Archivos a procesar: ";
+      say "Aplicando filtros: ";
       if ($grabar) {      
         &clear;
         say "*****************************************";
