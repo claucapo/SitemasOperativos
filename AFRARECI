@@ -36,18 +36,36 @@ function verificar_tipo(){
 	fi
 }
 
+function verificar_aniomesdia(){
+	#ANIOMESDIA debe ser una fecha valida
+	#ANIOMESDIA debe ser a lo sumo de un año de antiguedad
+	#ANIOMESDIA debe ser menor o igual a la fecha del día.
+	local fecha_file=`echo ${1##*/} | sed 's/^\(.*\)_\([1-2][0-9][0-9][0-9]\)\([0-1][0-9]\)\([0-3][0-9]\)/g'`
+	local fecha_desde=`date +%Y%m%d -d "1 year ago"` #en osx no anda pero en ubuntu si..
+	local fecha_actual=`date +%Y%m%d`
+	#verifico los rangos
+	if !(verificar_fecha "$fecha_file" "$fecha_desde" "$fecha_actual");
+	then
+		rechazar-archivo $1
+	fi
+}
+
 function verificar_fecha(){
-	if [ $2 -le $1 -a $1 -le $3 ]
-	 then
-		return 0
-	 else
-		return 1		
+	if [ $2 -le $1 -a $1 -le $3]
+		then
+			return 0
+		elif [ $1 -le $3 ]
+			log_info "Fecha invalida ${1##*/} - Fecha de archivo inferior a un anio"
+			return 1
+		else
+			log_info "Fecha invalida ${1##*/} - Fecha de archivo no puede ser superior a la actual."
+			return 1
 	fi
 }
 
 function rechazar_archivo(){
 	log_info "Movido ${1##*/} - Destino $RECHDIR/${1##*/}"
-	MoverA.sh  $1 $RECHDIR AFRARECI
+	"$BINDIR"/MoverA.sh  $1 $RECHDIR AFRARECI
 	return 0
 }
 
@@ -56,8 +74,8 @@ function rechazar_archivo(){
 # Se graba en el LOG : mensaje aceptado, destino ACEPDIR/<nombre del archivo>
 
 function aceptar_archivo(){
-	logInfo  "Aceptado ${1##*/} - Destino $ACEPDIR/${1##*/}"
-	moverA.sh $1 $ACEPDIR AFRARECI
+	log_info  "Aceptado ${1##*/} - Destino $ACEPDIR/${1##*/}"
+	"$BINDIR"/MoverA.sh $1 $ACEPDIR AFRARECI
 	return 0	
 }
 
@@ -94,7 +112,8 @@ function novedades_pedientes(){
 		if [ "$PID" = "" ]; 
 		then
 			AFRAUMBR &
-			#QUIEN LOGUEA QUE ARRANCO? ---> SUPONGO QUE LO HACE EL MISMO
+			PID=$(get_pid AFRAUMBR)
+			log_info "AFRAUMBR corriendo bajo el no.: $PID"
 			return 0
 		else
 			log_info "Invocacion de AFRAUMBR propuesta para el siguiente ciclo"
@@ -155,28 +174,17 @@ function verificar_formato(){
 
 	if ! [echo ${1##*/} | grep '^[A-Z,a-z]*_[0-9]{8}' &>/dev/null ];
 	 then
-	 	logInfo "Rechazado ${1##*/} - Formato de Nombre incorrecto"
+	 	log_info "Rechazado ${1##*/} - Formato de Nombre incorrecto"
 	 	rechazarArchivo $1
 		return 1
 	fi	
 	return 0
 }
 
-function verificar_aniomesdia(){
-	#ANIOMESDIA debe ser una fecha valida
-	#ANIOMESDIA debe ser a lo sumo de un año de antigüedad
-	#ANIOMESDIA debe ser menor o igual a la fecha del día.
-	#Fecha actual
-	current_date=`date +%Y%m%d`
-
-
-
-}
-
 
 while [[ true ]]; do
-	logInfo "Despertando demonio - Ciclo: $num_ciclo"
-	##procesar_novedades <--- proximamente
+	log_info "Despertando demonio - Ciclo: $num_ciclo"
+	procesar_novedades
 	novedades_pedientes
 	let num_ciclo++
 	log_info "Durmiendo demonio"
