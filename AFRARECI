@@ -55,7 +55,7 @@ function rechazar_archivo(){
 # ACEPDIR/<nombredelArchivo>
 # Se graba en el LOG : mensaje aceptado, destino ACEPDIR/<nombre del archivo>
 
-function aceptarArchivo(){
+function aceptar_archivo(){
 	logInfo  "Aceptado ${1##*/} - Destino $ACEPDIR/${1##*/}"
 	moverA.sh $1 $ACEPDIR AFRARECI
 	return 0	
@@ -138,14 +138,11 @@ function procesar_novedades(){
 						if [[ verificar_cod_central "$file" "$MAEDIR/CdC.mae" ]]; then
 							if [[ verificar_aniomesdia "$file" ]]; then
 								#4) Si es valido lo anterior se tienene que pasar a ACEPTADOS
-								aceptar
+								aceptar_archivo $file
 							fi
-
 						fi
-
 					fi
 				fi
-				
 			fi
 		done
 	fi
