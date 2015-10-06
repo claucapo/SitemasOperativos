@@ -121,6 +121,14 @@ sub clear {
 }
 
 # =============================================================================
+# Elimina duplicados de un array
+# =============================================================================
+sub uniq {
+    my %seen;
+    grep !$seen{$_}++, @_;
+}
+
+# =============================================================================
 # Resuelve consultas sobre los archivos de llamadas sospechosas
 # =============================================================================
 sub resolver_consulta {
@@ -133,32 +141,56 @@ sub resolver_consulta {
   # Proponerle filtrar archivos por oficina: ingrese oficina: _____ y por aniomes: ingrese año mes: _____ 
   # Proponerle filtrar archivos de subllamadas: desea utilizar archivos de subllamada?: _____ (un_archivo | lista separada por comas | * todas)
 
+  my @arch_sosp_disponibles = glob "PROCDIR/*";
+  # Quitamos la ruta al archivo
+  @arch_sosp_disponibles = map m|([^/]+)$|, @arch_sosp_disponibles;
+  my @arch_prev_disponibles = glob "REPODIR/*";
+  # Quitamos la ruta al archivo
+  @arch_prev_disponibles = map m|([^/]+)$|, @arch_prev_disponibles;
+  push(@arch_disponibles, @arch_sosp_disponibles);
+  push(@arch_disponibles, @arch_prev_disponibles);
+  my @arch_seleccionados;
+
   $op0 = "";
   while ($op0 != 4) {
     &clear;
     say "*****************************************";
     say "MENU : Principal";
-    say "1 - Seleccionar Archivos Input";
+    $cant_seleccionados = scalar @arch_seleccionados;
+    say "1 - Seleccionar Archivos ($cant_seleccionados archivos)";
     say "2 - Seleccionar Filtros";
-    say "3 - Generar Reporte";
+    if ($grabar) { 
+      say "3 - Generar Reporte en Archivo";
+    } else {
+      say "3 - Generar Reporte por Pantalla";
+    }
     say "4 - Salir";
     say "*****************************************";
     say "Seleccione opcion y presione enter.";
     $op0=<STDIN>;
     if ($op0 == 1) {
       $op1 = "";
-      while ($op1 != 3) {
+      while ($op1 != 1) {
         &clear;
         say "*****************************************";
-        say "MENU : Seleccionar Archivos Input";
-        say "1 - Llamadas Sospechozas";
-        say "2 - Consultas Previas";
-        say "3 - Menu Principal";
+        say "MENU : Seleccionar Archivos";
+        say "Archivos disponibles: ";
+        print join(" ", @arch_disponibles); print("\n");
+        say "Archivos seleccionados: ";
+        print join(" ", @arch_seleccionados); print("\n");
         say "*****************************************";
-        say "Seleccione opcion y presione enter.";
-        $op1=<STDIN>;
-        if ($op1 == 1) {
-          last;
+        say "Agregar archivo por oficina o aniomes, blanco para seleccionar todos, T para terminar, B para borrar todos:";
+        chomp($filtro1 = <STDIN>);
+        say $filtro1;
+        if ($filtro1 eq "T") {
+          # Termina la seleccion
+          $op1 = 1;
+        } elsif ($filtro1 eq "B") {
+          # Borrar toda la seleccion
+          @arch_seleccionados = ();
+        } else {
+          push(@arch_seleccionados, grep(/.*$filtro1.*/, @arch_disponibles));
+          @arch_seleccionados = uniq(@arch_seleccionados);
         }
       }
     }
@@ -191,7 +223,6 @@ sub resolver_consulta {
         say "Nombre de archivo: ";
         say "Cantidad de registros: ";
         say "*****************************************";
-        say "Gracias por utilizar AFRALIST";
         exit 0;
       } else {
         &clear;
@@ -199,7 +230,6 @@ sub resolver_consulta {
         say "Generando reporte por pantalla";
         say "Cantidad de registros: ";
         say "*****************************************";
-        say "Gracias por utilizar AFRALIST";
         exit 0;
       }
     }    
