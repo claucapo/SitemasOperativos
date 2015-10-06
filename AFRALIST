@@ -5,7 +5,7 @@
 # Reemplaza el print agregando \n automaticamente
 use feature qw(say);
 
-$VERSION = '1.0'
+$VERSION = '1.0';
 
 # =============================================================================
 # Muestra el man page
@@ -95,7 +95,7 @@ sub verificar_parametros {
   my $estadistica;
   my $grabar;
 
-  GetOptions ("h|help|?" => \$ayuda, "r|read=s@" => \$consulta, "s|stat=s@" => \$estadistica, "w|write" => \$grabar)
+  GetOptions ("h|help|?" => \$ayuda, "r|read" => \$consulta, "s|stat" => \$estadistica, "w|write" => \$grabar)
   or die("Error: argumentos invalidos. Ver documentacion: AFRALIST -h\n");
 
   # Muestra la ayuda
@@ -113,11 +113,17 @@ sub verificar_parametros {
 } # Fin: verifica_parametros
 
 # =============================================================================
+# Borra la pantalla
+# =============================================================================
+sub clear {
+  print "\033[2J"; # clear the screen
+  print "\033[0;0H"; # jump to 0,0
+}
+
+# =============================================================================
 # Resuelve consultas sobre los archivos de llamadas sospechosas
 # =============================================================================
 sub resolver_consulta {
-
-  say "resolver_consulta";
   my $grabar = $_[0];
 
   # Aca hay que hacer un menu que le permita resolver varias consultas sin salir del programa
@@ -126,6 +132,81 @@ sub resolver_consulta {
   # puede ser sobre los archivos de llamadas sospechosas <oficina>_<aniomes> o tambien sobre consultas previas subllamadas.xxx
   # Proponerle filtrar archivos por oficina: ingrese oficina: _____ y por aniomes: ingrese año mes: _____ 
   # Proponerle filtrar archivos de subllamadas: desea utilizar archivos de subllamada?: _____ (un_archivo | lista separada por comas | * todas)
+
+  $op0 = "";
+  while ($op0 != 4) {
+    &clear;
+    say "*****************************************";
+    say "MENU : Principal";
+    say "1 - Seleccionar Archivos Input";
+    say "2 - Seleccionar Filtros";
+    say "3 - Generar Reporte";
+    say "4 - Salir";
+    say "*****************************************";
+    say "Seleccione opcion y presione enter.";
+    $op0=<STDIN>;
+    if ($op0 == 1) {
+      $op1 = "";
+      while ($op1 != 3) {
+        &clear;
+        say "*****************************************";
+        say "MENU : Seleccionar Archivos Input";
+        say "1 - Llamadas Sospechozas";
+        say "2 - Consultas Previas";
+        say "3 - Menu Principal";
+        say "*****************************************";
+        say "Seleccione opcion y presione enter.";
+        $op1=<STDIN>;
+        if ($op1 == 1) {
+          last;
+        }
+      }
+    }
+    if ($op0 == 2) {
+      $op2 = "";
+      while ($op2 != 7) {
+        &clear;
+        say "*****************************************";
+        say "MENU : Seleccionar Filtros";
+        say "1 - Central";
+        say "2 - Agente";
+        say "3 - Umbral";
+        say "4 - Tipo de llamada";
+        say "5 - Tiempo de conversacion";
+        say "6 - Numero A";
+        say "7 - Menu principal";
+        say "*****************************************";
+        say "Seleccione opcion y presione enter.";
+        $op2=<STDIN>;
+        if ($op2 == 1) {
+          last;
+        }
+      }
+    }
+    if ($op0 == 3) { 
+      if ($grabar) {      
+        &clear;
+        say "*****************************************";
+        say "Generando reporte en archivo";
+        say "Nombre de archivo: ";
+        say "Cantidad de registros: ";
+        say "*****************************************";
+        say "Gracias por utilizar AFRALIST";
+        exit 0;
+      } else {
+        &clear;
+        say "*****************************************";
+        say "Generando reporte por pantalla";
+        say "Cantidad de registros: ";
+        say "*****************************************";
+        say "Gracias por utilizar AFRALIST";
+        exit 0;
+      }
+    }    
+  }
+  
+  &clear;
+  say "Gracias por utilizar AFRALIST";
 
   # Una vez que se tiene seleccionados los archivos sobre los cuales se va a trabajar, de permite aplicar estos filtros a los registros:
   # Filtro por central (una, varias, todas)
