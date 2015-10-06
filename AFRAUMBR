@@ -1,3 +1,498 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
-echo "El propósito de este comando es leer los archivos que se encuentran en el directorio ACEPDIR con información de archivos de llamadas, procesarlos cronológicamente, asignar el id de umbral si corresponde y grabar los registros de llamadas sospechosas en el archivo de oficina que corresponda en un archivo diferente por cada año – mes"
+ACEPDIR=acepdir
+MAEDIR=maedir
+PROCDIR=procdir
+RECHDIR=rechdir
+
+MAESTRO_PAISES="$MAEDIR/CdP.csv"
+MAESTRO_AREAS="$MAEDIR/CdA.csv"
+MAESTRO_CENTRALES="$MAEDIR/CdC.csv"
+MAESTRO_AGENTES="$MAEDIR/agentes.csv"
+MAESTRO_UMBRALES="$MAEDIR/umbrales.tab"
+
+cantidadLlamadas=0
+cantidadRechazadas=0
+cantidadConUmbral=0
+cantidadSinUmbral=0
+cantidadSospechosas=0
+cantidadNoSospechosas=0
+
+archivosProcesados=0
+archivosRechazados=0
+
+function archivosLlamadas() {
+	ls -ltr $ACEPDIR | grep ^- | rev | cut -d' ' -f1 | rev
+}
+
+function procesarArchivo() {
+	
+	local archivo=$1
+	local mensaje
+
+	cantidadLlamadas=0
+	cantidadRechazadas=0
+	cantidadConUmbral=0
+	cantidadSinUmbral=0
+	cantidadSospechosas=0
+	cantidadNoSospechosas=0
+
+	let archivosProcesados++
+
+	if [ -f "$PROCDIR/proc/$archivo" ]; then
+		mensaje="Se rechaza el archivo por estar DUPLICADO: $archivo"
+		rechazarArchivo "$archivo" "$mensaje"
+	elif [ -z "$(head -1 "$ACEPDIR/$archivo" | grep '^[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*$')" ]; then
+		mensaje="Se rechaza el archivo porque su estructura no se corresponde con el formato esperado: $archivo"
+		rechazarArchivo "$archivo" "$mensaje"
+	else
+		echo "Archivo a procesar: $archivo" #GraLog
+		cp -f "$ACEPDIR/$archivo" "$PROCDIR/proc" #MoverA
+		procesarRegistros "$PROCDIR/proc/$archivo"
+		mostrarTotalesPorArchivo
+	fi
+}
+
+function mostrarTotalesPorArchivo() {
+	echo "Cantidad de llamadas = ${cantidadLlamadas}: Rechazadas ${cantidadRechazadas}, Con umbral = ${cantidadConUmbral}, Sin umbral ${cantidadSinUmbral}" #GraLog
+	echo "Cantidad de llamadas sospechosas ${cantidadSospechosas}, no sospechosas ${cantidadNoSospechosas}" #GraLog
+}
+
+function rechazarArchivo() {
+	
+	local archivo=$1
+	local mensaje=$2
+
+	let archivosRechazados++
+	
+	echo $mensaje #GraLog
+	cp -f "$ACEPDIR/$archivo" "$RECHDIR" #MoverA
+}
+
+function procesarRegistros() {
+
+	local archivo=$1
+
+	while IFS= read -r registro; do
+
+		let cantidadLlamadas++
+		
+		registroValido "$registro"
+		local error=$?		
+		
+		if [ $error -ne 0 ]; then
+
+			local motivo
+
+			if [ $error -eq 1 ]; then
+				motivo="codigo de agente invalido"
+			elif [ $error -eq 2 ]; then
+				motivo="nroA invalido"
+			elif [ $error -eq 3 ]; then
+				motivo="nroB invalido"
+			elif [ $error -eq 4 ]; then
+				motivo="tiempo de conversacion invalido"
+			fi
+
+			rechazarRegistro "$archivo" "$registro" "$motivo"
+		else
+			determinarSospechosa "$archivo" "$registro"
+		fi
+
+	done < "$archivo"
+}
+
+function determinarSospechosa() {
+
+	local archivoLlamadas=$1
+	local registro=$2
+	local archivoUmbrales="$MAESTRO_UMBRALES"
+	local codigoCentral=$(echo ${archivoLlamadas##*/} | cut -f1 -d'_')
+	local fechaProceso=$(echo ${archivoLlamadas%%.*} | cut -f2 -d'_')
+	local codigoAgente=$(echo $registro | cut -f1 -d';')
+	local inicioLLamada=$(echo $registro | cut -f2 -d';')
+	local tiempoConversacion=$(echo $registro | cut -f3 -d';')
+	local nroA_codigoArea=$(echo $registro | cut -f4 -d';')
+	local nroA_numeroLinea=$(echo $registro | cut -f5 -d';')
+	local nroB_codigoPais=$(echo $registro | cut -f6 -d';')
+	local nroB_codigoArea=$(echo $registro | cut -f7 -d';')
+	local nroB_numeroLinea=$(echo $registro | cut -f8 -d';')
+	local tipoLLamada
+
+	if ( esDDI "$nroB_codigoPais" "$nroB_numeroLinea" ); then
+		tipoLlamada="DDI"
+	elif ( esDDN "$nroA_codigoArea" "$nroB_codigoArea" ); then
+		tipoLlamada="DDN"
+	elif ( esLOC "$nroA_codigoArea" "$nroB_codigoArea" ); then
+		tipoLlamada="LOC"
+	fi
+	
+	local sedResult=$(sed -n "s/^\([^;]\+\);$nroA_codigoArea;$nroA_numeroLinea;$tipoLlamada;$nroB_codigoArea;\([^;]\+\);Activo$/\1;\2/p" "$archivoUmbrales" | head -1)
+	
+	if [ -n "$sedResult" ]; then
+	
+		local umbralId=$(echo $sedResult | cut -f1 -d';')
+		local tope=$(echo $sedResult | cut -f2 -d';')
+		local oficina=$(grep "^[^;]*;[^;]*;$codigoAgente;[^;]*;[^;]*$" "$MAESTRO_AGENTES" | cut -f4 -d';')
+		local anioMesLlamada=$(echo "$inicioLLamada" | sed 's-^[0-9]\{2\}/\([0-9]\{2\}\)/\([0-9]\{4\}\).*$-\2\1-')
+		local archivoSospechosas="$PROCDIR/${oficina}_$anioMesLlamada"
+
+		if [ $tiempoConversacion -gt $tope ]; then
+			local registroSospechosas="$codigoCentral;$codigoAgente;$umbralId;$tipoLLamada;$inicioLLamada,$tiempoConversacion;$nroA_codigoArea,$nroA_numeroLinea;$nroB_codigoPais,$nroB_codigoArea;$nroB_numeroLinea;$fechaProceso"
+			echo "$registroSospechosas" >> "$archivoSospechosas"
+			let cantidadSospechosas++
+		else
+			let cantidadNoSospechosas++
+		fi
+
+		let cantidadConUmbral++
+	else
+		let cantidadSinUmbral++
+	fi
+}
+
+function rechazarRegistro() {
+	
+	local archivoLlamadas=$1
+	local registro=$2
+	local motivo=$3
+	local codigoCentral=$(echo ${archivoLlamadas##*/} | cut -f1 -d'_')
+	local codigoAgente=$(echo $registro | cut -f1 -d';')
+	local inicioLLamada=$(echo $registro | cut -f2 -d';')
+	local tiempoConversacion=$(echo $registro | cut -f3 -d';')
+	local nroA_codigoArea=$(echo $registro | cut -f4 -d';')
+	local nroA_numeroLinea=$(echo $registro | cut -f5 -d';')
+	local nroB_codigoPais=$(echo $registro | cut -f6 -d';')
+	local nroB_codigoArea=$(echo $registro | cut -f7 -d';')
+	local nroB_numeroLinea=$(echo $registro | cut -f8 -d';')
+	
+	archivoLlamadas=${archivoLlamadas##*/}
+	archivoLlamadas=${archivoLlamadas%%.*}
+	
+	local registroRechazadas="$archivoLlamadas;$motivo;$codigoAgente;$inicioLLamada;$tiempoConversacion;$nroA_codigoArea,$nroA_numeroLinea;$nroB_codigoPais,$nroB_codigoArea;$nroB_numeroLinea"
+	local archivoRechazadas="$RECHDIR/llamadas/${codigoCentral}.rech"
+	
+	echo "$registroRechazadas" >> "$archivoRechazadas"
+
+	let cantidadRechazadas++
+}
+
+function registroValido() {
+
+	local registro=$1
+	local codigoAgente=$(echo $registro | cut -f1 -d';')
+	local inicioLLamada=$(echo $registro | cut -f2 -d';')
+	local tiempoConversacion=$(echo $registro | cut -f3 -d';')
+	local nroA_codigoArea=$(echo $registro | cut -f4 -d';')
+	local nroA_numeroLinea=$(echo $registro | cut -f5 -d';')
+	local nroB_codigoPais=$(echo $registro | cut -f6 -d';')
+	local nroB_codigoArea=$(echo $registro | cut -f7 -d';')
+	local nroB_numeroLinea=$(echo $registro | cut -f8 -d';')
+	local resultado
+
+	if !(agenteValido "$codigoAgente"); then
+		let resultado=1
+	elif !(nroAValido "$nroA_codigoArea" "$nroA_numeroLinea"); then
+		let resultado=2
+	elif !(nroBValido "$nroA_codigoArea" "$nroB_codigoPais" "$nroB_codigoArea" "$nroB_numeroLinea"); then
+		let resultado=3
+	elif !(tiempoConversacionValido "$tiempoConversacion"); then
+		let resultado=4
+	else
+		let resultado=0
+	fi
+
+	return $resultado
+}
+
+function tiempoConversacionValido() {
+
+	local tiempoConversacion=$1
+	local resultado
+
+	if [ -z $tiempoConversacion ]; then
+		let resultado=1
+	elif !( esNumero "$tiempoConversacion" ); then
+		let resultado=1
+	elif [ ! $tiempoConversacion -ge 0 ]; then
+		let resultado=1
+	else
+		let resultado=0
+	fi
+
+	return $resultado
+}
+
+function agenteValido() {
+
+	local codigoAgente=$1
+	local archivo="$MAESTRO_AGENTES"
+	local resultado
+
+	if ( grep "^[^;]*;[^;]*;$codigoAgente;[^;]*;[^;]*$" "$archivo" &>/dev/null ); then
+		let resultado=0
+	else
+		let resultado=1
+	fi
+
+	return $resultado
+}
+
+function nroAValido() {
+
+	local nroA_area=$1
+	local nroA_numeroLinea=$2
+	local resultado
+
+	if !(areaValida "$nroA_area"); then
+		let resultado=1
+	elif [ ${#nroA_numeroLinea} -eq 8 -a ${#nroA_area} -eq 2 ]; then
+		let resultado=0
+	elif [ ${#nroA_numeroLinea} -eq 7 -a ${#nroA_area} -eq 3 ]; then
+		let resultado=0
+	elif [ ${#nroA_numeroLinea} -eq 6 -a ${#nroA_area} -eq 4 ];	then
+		let resultado=0
+	else
+		let resultado=1
+	fi
+
+	return $resultado
+}
+
+function nroBValido() {
+
+	local nroA_codigoArea=$1
+	local nroB_codigoPais=$2
+	local nroB_codigoArea=$3
+	local nroB_numeroLinea=$4
+	local resultado
+	local codigoArea_NumeroLinea
+
+	if ( paisInformado "$nroB_codigoPais" ); then
+		#es DDI
+		if ( esDDI "$nroB_codigoPais" "$nroB_numeroLinea" ); then
+			let resultado=0
+		else
+			let resultado=1
+		fi
+	else
+		codigoArea_NumeroLinea="$nroB_codigoArea$nroB_numeroLinea"
+		if [ $nroA_codigoArea != $nroB_codigoArea ]; then
+			#es DDN	
+			if ( esDDNValido "$nroB_codigoArea" "$nroB_numeroLinea" ); then
+				let resultado=0
+			else
+				let resultado=1
+			fi
+		else
+			#es local
+			if ( esLocalValida "$nroB_codigoArea" "$nroB_numeroLinea" ); then
+				let resultado=0
+			else
+				let resultado=1
+			fi
+		fi
+	fi
+
+	return $resultado
+}
+
+function esDDNValido() {
+
+	local codigoArea=$1
+	local numeroLinea=$2
+	local resultado
+	local codigoArea_NumeroLinea="$codigoArea$numeroLinea"
+
+	if ( numeroLineaValida "$codigoArea_NumeroLinea" ); then
+		if (areaValida "$nroB_codigoArea"); then
+			if [ ${#codigoArea_NumeroLinea} -eq 10 ]; then
+				let resultado=0
+			else
+				let resultado=1
+			fi
+		else
+			let resultado=1
+		fi
+	else
+		let resultado=1
+	fi
+
+	return $resultado
+}
+
+function esLocalValida() {
+
+	local codigoArea=$1
+	local numeroLinea=$2
+	local resultado
+	local codigoArea_NumeroLinea="$codigoArea$numeroLinea"
+
+	if ( numeroLineaValida "$codigoArea_NumeroLinea" ); then
+		if [ ${#codigoArea_NumeroLinea} -eq 10 ]; then
+			let resultado=0
+		else
+			let resultado=1
+		fi
+	else
+		let resultado=1
+	fi
+
+	return $resultado
+}
+
+function esDDI() {
+	
+	local codigoPais=$1
+	local numeroLinea=$2
+	local resultado
+
+	if !( paisValido "$nroB_codigoPais" ); then
+		let resultado=1
+	elif !( numeroLineaValida "$nroB_numeroLinea" ); then
+		let resultado=1
+	else
+		let resultado=0
+	fi
+
+	return $resultado
+}
+
+function esDDN() {
+	
+	local nroA_codigoArea=$1
+	local nroB_codigoArea=$2
+	local resultado
+
+	if [ $nroA_codigoArea != $nroB_codigoArea ]; then
+		let resultado=0
+	else
+		let resultado=1
+	fi
+
+	return $resultado
+}
+
+function esLOC() {
+	
+	local nroA_codigoArea=$1
+	local nroB_codigoArea=$2
+	local resultado
+
+	if [ $nroA_codigoArea == $nroB_codigoArea ]; then
+		let resultado=0
+	else
+		let resultado=1
+	fi
+
+	return $resultado
+}
+
+function paisInformado() {
+	
+	local codigoPais=$1
+	local resultado
+
+	if [ ${#codigoPais} -gt 0 ]; then
+		let resultado=0
+	else
+		let resultado=1
+	fi
+
+	return $resultado
+}
+
+function areaInformada() {
+	
+	local codigoArea=$1
+	local resultado
+
+	if [ ${#codigoArea} -gt 0 ]; then
+		let resultado=0
+	else
+		let resultado=1
+	fi
+
+	return $resultado
+}
+
+function paisValido() {
+
+	local codigoPais=$1
+	local archivo=$MAESTRO_PAISES
+	local resultado
+
+	if ( env LC_ALL=en_AR grep "^${codigoPais};[^;]*$" "$archivo" &>/dev/null ); then
+		let resultado=0
+	else
+		let resultado=1
+	fi
+
+	return $resultado
+}
+
+function numeroLineaValida() {
+	
+	local numeroLinea=$1
+	local resultado
+
+	if ( esNumero "$numeroLinea" ); then
+		let resultado=0
+	else
+		let resultado=1
+	fi
+
+	return $resultado
+}
+
+function esNumero() {
+	
+	local campo=$1
+	local resultado
+
+	if ( env LC_ALL=en_AR echo "$campo" | grep "^[0-9]\+$" &>/dev/null ); then
+		let resultado=0
+	else
+		let resultado=1
+	fi
+
+	return $resultado
+}
+
+function areaValida() {
+
+	local codigoArea=$1
+	local archivo=$MAESTRO_AREAS
+	local resultado
+
+	if ( env LC_ALL=en_AR grep "^[^;]*;$codigoArea$" "$archivo" &>/dev/null ); then
+		let resultado=0
+	else
+		let resultado=1
+	fi
+
+	return $resultado
+}
+
+function mostrarTotalesPorProceso() {
+	echo "Cantidad de archivos procesados: $archivosProcesados" #GraLog
+	echo "Cantidad de archivos rechazados: $archivosRechazados" #GraLog
+}
+
+function main() {
+
+	echo 'Inicio de AFRAUMBR' #GraLog
+
+	cantidadArchivosLlamadas=$(archivosLlamadas | wc -l)
+	echo "Cantidad de archivos a procesar: $cantidadArchivosLlamadas" #GraLog
+
+	for archivo in $(archivosLlamadas); do
+		procesarArchivo "$archivo"
+	done
+	
+	mostrarTotalesPorProceso
+	echo "Fin de AFRAUMBR" #GraLog
+}
+
+main
+
