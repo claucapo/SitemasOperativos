@@ -224,30 +224,12 @@ else
     ls "$BINDIR"
     
     # Verificar presencia de ejecutables
-    if ! [[ "$archivos_bindir" =~ (^|[[:space:]])"GraLog.sh"($|[[:space:]]) ]] ; then # Si falta GraLog
-        faltantes_bindir+=("GraLog.sh")
-    fi
-    if ! [[ "$archivos_bindir" =~ (^|[[:space:]])"MoverA.sh"($|[[:space:]]) ]] ; then # Si falta MoverA
-        faltantes_bindir+=("MoverA.sh")
-    fi
-    if ! [[ "$archivos_bindir" =~ (^|[[:space:]])"Arrancar.sh"($|[[:space:]]) ]] ; then # Si falta Arrancar
-        faltantes_bindir+=("Arrancar.sh")
-    fi
-    if ! [[ "$archivos_bindir" =~ (^|[[:space:]])"Detener.sh"($|[[:space:]]) ]] ; then # Si falta Detener
-        faltantes_bindir+=("Detener.sh")
-    fi
-    if ! [[ "$archivos_bindir" =~ (^|[[:space:]])"AFRAINIC"($|[[:space:]]) ]] ; then # Si falta AFRAINIC
-        faltantes_bindir+=("AFRAINIC")
-    fi
-    if ! [[ "$archivos_bindir" =~ (^|[[:space:]])"AFRARECI"($|[[:space:]]) ]] ; then # Si falta AFRARECI
-        faltantes_bindir+=("AFRARECI")
-    fi
-    if ! [[ "$archivos_bindir" =~ (^|[[:space:]])"AFRAUMBR"($|[[:space:]]) ]] ; then # Si falta AFRAUMBR
-        faltantes_bindir+=("AFRAUMBR")
-    fi
-    if ! [[ "$archivos_bindir" =~ (^|[[:space:]])"AFRALIST"($|[[:space:]]) ]] ; then # Si falta AFRALIST
-        faltantes_bindir+=("AFRALIST")
-    fi
+    archivos=("GraLog.sh" "MoverA.sh" "Arrancar.sh" "Detener.sh" "AFRAINIC" "AFRARECI" "AFRAUMBR" "AFRALIST")
+    for archivo in ${archivos[@]} ; do
+        if ! [[ "$archivos_bindir" =~ (^|[[:space:]])"$archivo"($|[[:space:]]) ]] ; then
+            faltantes_bindir+=("$archivo")
+        fi
+    done
     
     echo
     echo "Directorio de maestros y tablas: $MAEDIR"
@@ -256,24 +238,12 @@ else
     ls "$MAEDIR"
     
     # Verificar presencia de maestros y tablas
-    if ! [[ "$archivos_maedir" =~ (^|[[:space:]])"CdP.mae"($|[[:space:]]) ]] ; then # Si falta CdP.mae
-        faltantes_maedir+=("CdP.mae")
-    fi
-    if ! [[ "$archivos_maedir" =~ (^|[[:space:]])"CdA.mae"($|[[:space:]]) ]] ; then # Si falta CdA.mae
-        faltantes_maedir+=("CdA.mae")
-    fi
-    if ! [[ "$archivos_maedir" =~ (^|[[:space:]])"CdC.mae"($|[[:space:]]) ]] ; then # Si falta CdC.mae
-        faltantes_maedir+=("CdC.mae")
-    fi
-    if ! [[ "$archivos_maedir" =~ (^|[[:space:]])"agentes.mae"($|[[:space:]]) ]] ; then # Si falta agentes.mae
-        faltantes_maedir+=("agentes.mae")
-    fi
-    if ! [[ "$archivos_maedir" =~ (^|[[:space:]])"tllama.tab"($|[[:space:]]) ]] ; then # Si falta tllama.tab
-        faltantes_maedir+=("tllama.tab")
-    fi
-    if ! [[ "$archivos_maedir" =~ (^|[[:space:]])"umbral.tab"($|[[:space:]]) ]] ; then # Si falta umbral.tab
-        faltantes_maedir+=("umbral.tab")
-    fi
+    archivos=("CdP.mae" "CdA.mae" "CdC.mae" "agentes.mae" "tllama.tab" "umbral.tab")
+    for archivo in ${archivos[@]} ; do
+        if ! [[ "$archivos_maedir" =~ (^|[[:space:]])"$archivo"($|[[:space:]]) ]] ; then
+            faltantes_maedir+=("$archivo")
+        fi
+    done
     
     echo
     grabar_en_log "Directorio de recepción de archivos de llamadas: $NOVEDIR" "INFO"
