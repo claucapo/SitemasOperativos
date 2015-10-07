@@ -23,12 +23,13 @@ function log_error(){
 
 #verifica si un archivo es tipo texto
 function verificar_tipo(){	
-	local f_tipo=`file $1`
+	local f_tipo=`file "$1"`
 	local tipo=`echo $f_tipo | sed 's/^\(.*\):\(.*\)/\2/g'`	
 
-	if ! [ echo $tipo | grep '^.*text.*$' &>/dev/null ];
+    local tipo_actual=`echo $tipo | grep '^.*text.*$' &>/dev/null`
+	if [ "$tipo_actual" == "" ];
 		then 
-			rechazar_archivo $1
+			rechazar_archivo "$1"
 			log_info "Rechazado  ${1##*/}  - Tipo invalido : $tipo"
 			return 1
 		else
@@ -44,9 +45,9 @@ function verificar_aniomesdia(){
 	local fecha_desde=`date +%Y%m%d -d "1 year ago"` #en osx no anda pero en ubuntu si..
 	local fecha_actual=`date +%Y%m%d`
 	#verifico los rangos
-	if !(verificar_fecha "$fecha_file" "$fecha_desde" "$fecha_actual");
+	if ! verificar_fecha "$fecha_file" "$fecha_desde" "$fecha_actual" ;
 	then
-		rechazar-archivo $1
+		rechazar_archivo "$1"
 	fi
 }
 
@@ -66,7 +67,7 @@ function verificar_fecha(){
 
 function rechazar_archivo(){
 	log_info "Movido ${1##*/} - Destino $RECHDIR/${1##*/}"
-	"$BINDIR"/MoverA.sh  $1 $RECHDIR AFRARECI
+	"$BINDIR"/MoverA.sh  "$1" "$RECHDIR" AFRARECI
 	return 0
 }
 
@@ -76,7 +77,7 @@ function rechazar_archivo(){
 
 function aceptar_archivo(){
 	log_info  "Aceptado ${1##*/} - Destino $ACEPDIR/${1##*/}"
-	"$BINDIR"/MoverA.sh $1 $ACEPDIR AFRARECI
+	"$BINDIR"/MoverA.sh "$1" "$ACEPDIR" AFRARECI
 	return 0	
 }
 
@@ -106,7 +107,7 @@ function hay_novedades_pendientes(){
 # Si surge algun error se muestra por pantalla
 
 function novedades_pedientes(){
-	if hay_novedades_pendientes $ACEPDIR;
+	if hay_novedades_pendientes "$ACEPDIR";
 		then
 		PID=$(get_pid AFRAUMBR)
 
@@ -141,24 +142,25 @@ fi
 }
 
 function procesar_novedades(){
-	if hay_novedades_pendientes $NOVEDIR
+	if hay_novedades_pendientes "$NOVEDIR"
 		then
-		for file in $NOVEDIR
+		archivos=$(ls "$NOVEDIR")
+		for file in ${archivos[@]}
 		do
 			#1) Verificar si es tipo texto
-			if [ verificar_tipo "$file" ];
+			if verificar_tipo "$NOVEDIR/$file" ;
 				then
 					#2) Verificar que el formato del nombre del archivo sea correcto
 					#FORMATO CORRECTO: <cod_central>_<aniomesdia>
-					if [ verificar_formato "$file" ]; then
+					if verificar_formato "$NOVEDIR/$file" ; then
 						#3) Validar nombre de los archivos
 							#cod_central tiene que estar en el maestro de centrales
 							#aniomesdia tiene que ser fecha valida, maximo un año de antiguedad
 								#y tiene que ser menor que  o igual a la fecha actual
-						if [ verificar_cod_central "$file" "$MAEDIR/CdC.mae" ]; then
-							if [ verificar_aniomesdia "$file" ]; then
+						if verificar_cod_central "$NOVEDIR/$file" "$MAEDIR/CdC.mae" ; then
+							if verificar_aniomesdia "$NOVEDIR/$file" ; then
 								#4) Si es valido lo anterior se tienene que pasar a ACEPTADOS
-								aceptar_archivo $file
+								aceptar_archivo "$NOVEDIR/$file"
 							fi
 						fi
 					fi
@@ -171,11 +173,12 @@ function procesar_novedades(){
 function verificar_formato(){
 	local errorCantidadCampos=""
 	local fecha=""
+	local control=`echo ${1##*/} | grep '^[A-Z,a-z]*_[0-9]{8}' &>/dev/null`
 
-	if ! [echo ${1##*/} | grep '^[A-Z,a-z]*_[0-9]{8}' &>/dev/null ];
+	if [ "$control" == "" ];
 	 then
 	 	log_info "Rechazado ${1##*/} - Formato de Nombre incorrecto"
-	 	rechazarArchivo $1
+	 	rechazar_archivo "$1"
 		return 1
 	fi	
 	return 0
