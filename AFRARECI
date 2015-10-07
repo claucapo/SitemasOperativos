@@ -55,6 +55,7 @@ function verificar_fecha(){
 		then
 			return 0
 		elif [ $1 -le $3 ]
+		then
 			log_info "Fecha invalida ${1##*/} - Fecha de archivo inferior a un anio"
 			return 1
 		else
@@ -145,23 +146,22 @@ function procesar_novedades(){
 		for file in $NOVEDIR
 		do
 			#1) Verificar si es tipo texto
-			if [[ verificar_tipo "$file" ]];
+			if [ verificar_tipo "$file" ];
 				then
 					#2) Verificar que el formato del nombre del archivo sea correcto
 					#FORMATO CORRECTO: <cod_central>_<aniomesdia>
-					if [[ verificar_formato "$file"]]; then
+					if [ verificar_formato "$file" ]; then
 						#3) Validar nombre de los archivos
 							#cod_central tiene que estar en el maestro de centrales
 							#aniomesdia tiene que ser fecha valida, maximo un año de antiguedad
 								#y tiene que ser menor que  o igual a la fecha actual
-						if [[ verificar_cod_central "$file" "$MAEDIR/CdC.mae" ]]; then
-							if [[ verificar_aniomesdia "$file" ]]; then
+						if [ verificar_cod_central "$file" "$MAEDIR/CdC.mae" ]; then
+							if [ verificar_aniomesdia "$file" ]; then
 								#4) Si es valido lo anterior se tienene que pasar a ACEPTADOS
 								aceptar_archivo $file
 							fi
 						fi
 					fi
-				fi
 			fi
 		done
 	fi
