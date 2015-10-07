@@ -46,7 +46,7 @@ function verificar_aniomesdia(){
 	local fecha_actual=`date +%Y%m%d`
 
 	#verifico si es una fecha valida
-	if ! date -d "${fecha_file:6:4}-${fecha_file:0:2}-${fecha_file:3:2}";
+	if ! date -d "${fecha_file:0:4}-${fecha_file:4:2}-${fecha_file:6:2}";
 		then 
 		log_info "Fecha invalida ${1##*/} - Fecha de archivo tiene valores invalidos"
 		rechazar-archivo $1
