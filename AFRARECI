@@ -24,16 +24,15 @@ function log_error(){
 #verifica si un archivo es tipo texto
 function verificar_tipo(){	
 	local f_tipo=`file "$1"`
-	local tipo=`echo $f_tipo | sed 's/^\(.*\):\(.*\)/\2/g'`	
-
-    local tipo_actual=`echo $tipo | grep '^.*text.*$' &>/dev/null`
-	if [ "$tipo_actual" == "" ];
-		then 
-			rechazar_archivo "$1"
-			log_info "Rechazado  ${1##*/}  - Tipo invalido : $tipo"
-			return 1
-		else
-			return 0
+	local tipo=`echo "$f_tipo" | sed 's/^\(.*\):\(.*\)/\2/g'`	
+    local tipo_actual=`echo "$tipo" | grep "text$"`
+	if [ "$tipo_actual" == "" ]
+	then 
+		rechazar_archivo "$1"
+		log_info "Rechazado  ${1##*/}  - Tipo invalido : $tipo"
+		return 1
+	else
+		return 0
 	fi
 }
 
