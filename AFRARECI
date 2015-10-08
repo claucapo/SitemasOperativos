@@ -180,10 +180,8 @@ function procesar_novedades(){
 function verificar_formato(){
 	local errorCantidadCampos=""
 	local fecha=""
-	local control=`echo ${1##*/} | grep '^[A-Z,a-z]+_[0-9]{8}' &>/dev/null`
-
-	if [ "$control" == "" ];
-	 then
+	if ! [[ "${1##*/}" =~ ^[a-zA-Z]{3}_[0-9]{8}\.csv$ ]];
+	then
 	 	log_info "Rechazado ${1##*/} - Formato de Nombre incorrecto"
 	 	rechazar_archivo "$1"
 		return 1
