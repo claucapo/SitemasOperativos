@@ -73,7 +73,7 @@ SEE ALSO
 # =============================================================================
 sub verificar_entorno {
   # Verificamos que exista la variable de entorno BINDIR
-  # die "No se puede ejecutar: Primero debe correr AFRAINIC para preparar el entorno.\n" if not $BINDIR;
+  die "No se puede ejecutar: Primero debe correr AFRAINIC para preparar el entorno.\n" if not $ENV{'BINDIR'};
 
   # No puede correr si ya hay una instancia en ejecucion
   my @ps = `ps -ef | grep AFRALIST | grep -v grep`;
@@ -162,7 +162,7 @@ sub procesar_archivos {
   # Recorro los archivos seleccionados
   foreach (@$archivos) {
     $archivo = $_;
-    open(my $fh, "<", "PROCDIR/$archivo") or die "No se pudo abrir el archivo: $!\n";
+    open(my $fh, "<", "$ENV{'PROCDIR'}/$archivo") or open(my $fh, "<", "$ENV{'REPODIR'}/$archivo") or die "No se pudo abrir el archivo: $!\n";
     while(<$fh>) {
       chomp;
       $match = 0;
@@ -219,9 +219,9 @@ sub resolver_consulta {
   # Proponerle filtrar archivos de subllamadas (uno, varias, todas)
 
   # SELECCION DE ARCHIVOS
-  my @arch_sosp_disponibles = glob "PROCDIR/*";
+  my @arch_sosp_disponibles = glob "$ENV{'PROCDIR'}/*";
   @arch_sosp_disponibles = map m|([^/]+)$|, @arch_sosp_disponibles;
-  my @arch_prev_disponibles = glob "REPODIR/*";
+  my @arch_prev_disponibles = glob "$ENV{'REPODIR'}/*";
   @arch_prev_disponibles = map m|([^/]+)$|, @arch_prev_disponibles;
   push(@arch_disponibles, @arch_sosp_disponibles);
   push(@arch_disponibles, @arch_prev_disponibles);
@@ -229,7 +229,7 @@ sub resolver_consulta {
 
   # SELECCION DE CENTRALES
   my @centrales_disponibles;
-  open(my $fh, "<", "datos/centrales.csv") or die "No se pudo abrir el archivo: $!\n";
+  open(my $fh, "<", "$ENV{'MAEDIR'}/CdC.mae") or die "No se pudo abrir el archivo: $!\n";
   while(<$fh>) { chomp; 
     $_ =~ /(.*);.*/ || next; 
     push(@centrales_disponibles, $1); } 
@@ -238,7 +238,7 @@ sub resolver_consulta {
 
   # SELECCION DE AGENTES
   my @agentes_disponibles;
-  open(my $fh, "<", "datos/agentes.csv") or die "No se pudo abrir el archivo: $!\n";
+  open(my $fh, "<", "$ENV{'MAEDIR'}/agentes.mae") or die "No se pudo abrir el archivo: $!\n";
   while(<$fh>) { chomp; 
     $_ =~ /.*;.*;(.*);.*;.*/ || next; 
     push(@agentes_disponibles, $1); } 
@@ -247,7 +247,7 @@ sub resolver_consulta {
 
   # SELECCION DE UMBRALES
   my @umbrales_disponibles;
-  open(my $fh, "<", "datos/umbrales.csv") or die "No se pudo abrir el archivo: $!\n";
+  open(my $fh, "<", "$ENV{'MAEDIR'}/umbral.tab") or die "No se pudo abrir el archivo: $!\n";
   while(<$fh>) { chomp; 
     $_ =~ /(.*);.*;.*;.*;.*;.*;.*/ || next; 
     push(@umbrales_disponibles, $1); } 
