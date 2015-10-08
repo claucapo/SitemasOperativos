@@ -1,10 +1,5 @@
 #!/bin/bash
 
-ACEPDIR=acepdir
-MAEDIR=maedir
-PROCDIR=procdir
-RECHDIR=rechdir
-
 MAESTRO_PAISES="$MAEDIR/CdP.csv"
 MAESTRO_AREAS="$MAEDIR/CdA.csv"
 MAESTRO_CENTRALES="$MAEDIR/CdC.csv"
@@ -22,7 +17,7 @@ archivosProcesados=0
 archivosRechazados=0
 
 function archivosLlamadas() {
-	ls -ltr $ACEPDIR | grep ^- | rev | cut -d' ' -f1 | rev
+	ls -ltr "$ACEPDIR" | grep ^- | rev | cut -d' ' -f1 | rev
 }
 
 function procesarArchivo() {
