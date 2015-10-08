@@ -72,7 +72,6 @@ SEE ALSO
 # Verifica que este correcto el entorno
 # =============================================================================
 sub verificar_entorno {
-
   # Verificamos que exista la variable de entorno BINDIR
   # die "No se puede ejecutar: Primero debe correr AFRAINIC para preparar el entorno.\n" if not $BINDIR;
 
@@ -87,7 +86,6 @@ sub verificar_entorno {
 # Actua en funcion de los parametros ingresados
 # =============================================================================
 sub verificar_parametros {
-
   # Usamos este modulo para parsear los parametros
   use Getopt::Long;
   my $ayuda;
@@ -131,6 +129,85 @@ sub uniq {
 }
 
 # =============================================================================
+# Procesa los archivos seleccionados y aplica los filtros
+# =============================================================================
+sub procesar_archivos {
+  my ($archivos,$centrales,$agentes,$tipos,$numeros,$desde,$hasta) = @_;
+  say @$archivos;
+  say "Filtros";
+  if (scalar @$centrales > 0) {
+    $central = join("|", @$centrales);
+  } else {
+    $central = '.*';
+  }
+  say "Central: $central";
+  if (scalar @$agentes > 0) {
+    $agente = join("|", @$agentes);
+  } else {
+    $agente = '.*';
+  }
+  say "Agente: $agente";
+  if (scalar @$tipos > 0) {
+    $tipo = join("|", @$tipos);
+  } else {
+    $tipo = '.*';
+  }
+  say "Tipo: $tipo";
+  if (scalar @$numeros > 0) {
+    $numero = join("|", @$numeros);
+  } else {
+    $numero = '.*';
+  }
+  say "Numero: $numero";
+  # Recorro los archivos seleccionados
+  foreach (@$archivos) {
+    $archivo = $_;
+    open(my $fh, "<", "PROCDIR/$archivo") or die "No se pudo abrir el archivo: $!\n";
+    while(<$fh>) {
+      chomp;
+      $match = 0;
+      if ($_ =~ /($central);.*;.*;.*;.*;.*;.*;.*;.*;.*;.*;.*/) {
+        say $_; say "match central "; 
+        $match++;
+      } 
+      if ($_ =~ /.*;($agente);.*;.*;.*;.*;.*;.*;.*;.*;.*;.*/) {
+        say $_; say "match agente "; 
+        $match++;
+      }
+      if ($_ =~ /.*;.*;.*;($tipo);.*;.*;.*;.*;.*;.*;.*;.*/) {
+        say $_; say "match tipo "; 
+        $match++;
+      }
+      if ($_ =~ /.*;.*;.*;.*;.*;.*;.*;($numero);.*;.*;.*;.*/) {
+        say $_; say "match numero "; 
+        $match++;
+      }
+      if ($desde and $hasta) {
+        if ($_ =~ /.*;.*;.*;.*;.*;(.*);.*;.*;.*;.*;.*;.*/ and $1 > $desde and $1 < $hasta) {
+          say $_; say "match rango tiempo "; 
+          $match++;
+        }
+      } else { 
+        say $_; say "match rango tiempo "; 
+        $match++;
+      }
+      if ($match >= 5) {
+        push(@resultados, $_);
+      }
+      
+    }
+    close $fh;
+  }
+ 
+  #DEBUG
+  #say "Resultados:"; 
+  #print "$_\n" for sort @resultados;
+  #<STDIN>;
+
+  return @resultados;
+} # Fin: procesar_archivos
+
+# =============================================================================
 # Resuelve consultas sobre los archivos de llamadas sospechosas
 # =============================================================================
 sub resolver_consulta {
@@ -153,7 +230,9 @@ sub resolver_consulta {
   # SELECCION DE CENTRALES
   my @centrales_disponibles;
   open(my $fh, "<", "datos/centrales.csv") or die "No se pudo abrir el archivo: $!\n";
-  while(<$fh>) { chomp; push(@centrales_disponibles, $_); } 
+  while(<$fh>) { chomp; 
+    $_ =~ /(.*);.*/ || next; 
+    push(@centrales_disponibles, $1); } 
   close $fh;
   my @centrales_seleccionadas;
 
@@ -166,6 +245,15 @@ sub resolver_consulta {
   close $fh;
   my @agentes_seleccionados;
 
+  # SELECCION DE UMBRALES
+  my @umbrales_disponibles;
+  open(my $fh, "<", "datos/umbrales.csv") or die "No se pudo abrir el archivo: $!\n";
+  while(<$fh>) { chomp; 
+    $_ =~ /(.*);.*;.*;.*;.*;.*;.*/ || next; 
+    push(@umbrales_disponibles, $1); } 
+  close $fh;
+  my @umbrales_seleccionados;
+  
   # SELECCION TIPO DE LLAMADA
   my @tipos_disponibles = qw(LOC DDN DDI);
   my @tipos_seleccionados;
@@ -256,7 +344,7 @@ sub resolver_consulta {
             } elsif ($filtro eq "B") {
               @centrales_seleccionadas = (); # Borrar toda la seleccion
             } else {
-              push(@centrales_seleccionadas, grep(/$filtro;.*/, @centrales_disponibles));
+              push(@centrales_seleccionadas, grep(/$filtro/, @centrales_disponibles));
               @centrales_seleccionadas = uniq(@centrales_seleccionadas);
             }
           }
@@ -287,7 +375,27 @@ sub resolver_consulta {
         }
         if ($op2 == 3) {
           # Selecciona umbrales
-          
+          $filtro = '';
+          while ($filtro ne 'T') {
+            &clear;
+            say "*****************************************";
+            say "MENU : Seleccionar Umbrales";
+            say "Umbrales disponibles: ";
+            print join(" ", @umbrales_disponibles); print("\n");
+            say "Umbrales seleccionados: ";
+            print join(" ", @umbrales_seleccionados); print("\n");
+            say "*****************************************";
+            say "Agregar por codigo de umbral, blanco para seleccionar todas, T para terminar, B para borrar todas:";
+            chomp($filtro = <STDIN>);
+            if ($filtro eq "T") {
+              # Sale sin filtrar
+            } elsif ($filtro eq "B") {
+              @umbrales_seleccionados = (); # Borrar toda la seleccion
+            } else {
+              push(@umbrales_seleccionados, grep(/^$filtro/, @umbrales_disponibles));
+              @umbrales_seleccionados = uniq(@umbrales_seleccionados);
+            }
+          }
         }
         if ($op2 == 4) {
           # Selecciona tipo de llamada
@@ -321,9 +429,9 @@ sub resolver_consulta {
             say "*****************************************";
             say "MENU : Seleccionar Rango Conversacion";
             say "*****************************************";
-            say "Desde: (formato )";
+            print "Desde: ";
             chomp($desde_conversacion = <STDIN>);
-            say "Hasta: (formato )";
+            print "Hasta: ";
             chomp($hasta_conversacion = <STDIN>);
             $filtro = "T";
           }
@@ -338,7 +446,7 @@ sub resolver_consulta {
             say "Numeros seleccionados: ";
             print join(" ", @numeros_seleccionados); print("\n");
             say "*****************************************";
-            say "Agregar numero A (formato ), T para terminar, B para borrar todos:";
+            say "Agregar numero A (formato: <area;numero>), T para terminar, B para borrar todos:";
             chomp($filtro = <STDIN>);
             if ($filtro eq "T") {
               # Sale sin agregar
@@ -353,41 +461,42 @@ sub resolver_consulta {
       }
     }
     if ($op0 == 3) { 
-      say "*****************************************";
-      say "Archivos a procesar: ";
-      say "Aplicando filtros: ";
-      if ($grabar) {      
-        &clear;
+      if ($cant_seleccionados > 0 && $cant_filtros > 0) { 
         say "*****************************************";
-        say "Generando reporte en archivo";
-        say "Nombre de archivo: ";
-        say "Cantidad de registros: ";
-        say "*****************************************";
-        exit 0;
+        say "Procesando $cant_seleccionados archivos con $cant_filtros filtros";
+        sleep 2;
+        @resultados = procesar_archivos(\@arch_seleccionados, \@centrales_seleccionadas, \@agentes_seleccionados, \@tipos_seleccionados, \@numeros_seleccionados, $desde_conversacion, $hasta_conversacion);
+        if ($grabar) {      
+          &clear;
+          say "*****************************************";
+          say "Generando reporte en archivo";
+          say "Nombre de archivo: ";
+          say "Cantidad de registros: ";
+          say "*****************************************";
+          exit 0;
+          print "Presione enter para volver al menu principal. "; <STDIN>
+        } else {
+          &clear;
+          say "*****************************************";
+          say "Generando reporte por pantalla";
+          print "Cantidad de registros: "; say scalar @resultados;
+          say "*****************************************";
+          print "$_\n" for sort @resultados;
+          say "*****************************************";
+          exit 0;
+          print "Presione enter para volver al menu principal. "; <STDIN>
+        }
       } else {
-        &clear;
-        say "*****************************************";
-        say "Generando reporte por pantalla";
-        say "Cantidad de registros: ";
-        say "*****************************************";
-        exit 0;
+        say "Error: Debe seleccionar archivos y filtros.";
+        sleep 2;
       }
+      # Eliminamos los resultados anteriores
+      @resultados = ();
     }    
   }
   
   &clear;
   say "Gracias por utilizar AFRALIST";
-
-  # Una vez que se tiene seleccionados los archivos sobre los cuales se va a trabajar, de permite aplicar estos filtros a los registros:
-  # Filtro por central (una, varias, todas)
-  # Filtro por agente (uno, varios, todos)
-  # Filtro por umbral (uno, varios, todos)
-  # Filtro por tipo de llamada (una, varias, todas)
-  # Filtro por tiempo de conversación (rango)
-  # Filtro por numero A (área y numero de línea) (uno, varios, todos)
-
-  # Se imprime por pantalla todos los registros de esos archivos que cumplan los filtros
-  # Si esta habilitado el flag grabar crea un archivo subllamada.xxx
 
   return 0
 } # Fin: resolver_consulta
