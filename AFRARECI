@@ -40,7 +40,7 @@ function verificar_aniomesdia(){
 	#ANIOMESDIA debe ser una fecha valida
 	#ANIOMESDIA debe ser a lo sumo de un año de antiguedad
 	#ANIOMESDIA debe ser menor o igual a la fecha del día.
-	local fecha_file=`echo ${1##*/} | sed 's/^\(.*\)_\([1-2][0-9][0-9][0-9]\)\([0-1][0-9]\)\([0-3][0-9]\)/\2\3\4/g'`
+	local fecha_file=`echo ${1##*/} | sed 's/^\(.*\)_\([1-2][0-9][0-9][0-9]\)\([0-1][0-9]\)\([0-3][0-9]\)\.csv/\2\3\4/g'`
 	local fecha_desde=`date +%Y%m%d -d "1 year ago"` #en osx no anda pero en ubuntu si..
 	local fecha_actual=`date +%Y%m%d`
 
@@ -62,14 +62,14 @@ function verificar_aniomesdia(){
 }
 
 function verificar_fecha(){
-	if [ $2 -le $1 -a $1 -le $3]
-		then
-			return 0
-		elif [ $1 -le $3 ]
-		then
-			log_info "Fecha invalida ${1##*/} - Fecha de archivo inferior a un anio"
-		else
-			log_info "Fecha invalida ${1##*/} - Fecha de archivo no puede ser superior a la actual."
+	if [ "$2" -le "$1" -a "$1" -le "$3" ]
+	then
+		return 0
+	elif [ "$1" -le "$3" ]
+	then
+		log_info "Fecha invalida ${1##*/} - Fecha de archivo inferior a un anio"
+	else
+		log_info "Fecha invalida ${1##*/} - Fecha de archivo no puede ser superior a la actual."
 	fi
 	return 1
 }
@@ -138,7 +138,7 @@ function verificar_cod_central(){
 		
 local cod_central=`echo ${1##*/} | sed 's/^\(.*\)_\(.*\)/\1/g'`
 
-if ! [ grep "^$cod_central;.*;" "$2" &>/dev/null ];
+if ! grep "^$cod_central;" "$2" ;
 	then
 		rechazar_archivo $1
 		log_info "Rechazado ${1##*/} - [$cod_central] Central inexistente"
