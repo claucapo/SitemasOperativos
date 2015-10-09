@@ -122,7 +122,7 @@ function novedades_pedientes(){
 
 		if [ "$PID" = "" ]; 
 		then
-			AFRAUMBR &
+			./AFRAUMBR &
 			PID=$(get_pid AFRAUMBR)
 			log_info "AFRAUMBR corriendo bajo el no.: $PID"
 		else
@@ -189,6 +189,12 @@ function verificar_formato(){
 	return 0
 }
 
+# Verificar si el ambiente ya fue inicializado
+if [ "$MAEDIR" == "" ] ; then
+    grabar_en_log "El ambiente no fue inicializado." "ERR"
+    echo "El ambiente no fue inicializado. Ejecute . ./AFRAINIC"
+    return 1
+fi
 
 while [[ true ]]; do
 	log_info "Despertando demonio - Ciclo: $num_ciclo"

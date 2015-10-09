@@ -1,6 +1,9 @@
 #!/bin/bash
 # Script para iniciar el sistema AFRA-I
 
+ok=0
+error=1
+
 # Funciones
 
 # $1: Mensaje a loguear ; $2: Tipo del mensaje
@@ -14,7 +17,7 @@ function grabar_en_log {
 if [ "$MAEDIR" != "" ] ; then
     grabar_en_log "El ambiente ya fue inicializado. Para reiniciar termine la sesión y ejecute AFRAINIC nuevamente." "WAR"
     echo "El ambiente ya fue inicializado. Para reiniciar termine la sesión y ejecute AFRAINIC nuevamente."
-    exit
+    return $ok
 fi
 
 # Buscar path GRUPO
@@ -25,7 +28,7 @@ done
 # Si no se encontro AFRAINST salir
 if [ ! -f AFRAINST ] && [ $PWD == "/" ] ; then
     echo "No se pudo encontrar AFRAINST en el directorio raíz. Descomprima el paquete de instalación nuevamente."
-    exit
+    return $error
 fi
 
 export GRUPO=$PWD # Tengo el directorio raiz
@@ -34,11 +37,11 @@ export CONFDIR="$GRUPO/conf"
 # Verificar si existe el archivo de configuración
 if ! [ -d "$CONFDIR" ] ; then
     echo "No existe directorio de configuración. Descomprima el paquete de instalación nuevamente."
-    exit
+    return $error
 fi
 if ! [ -f "$CONFDIR/AFRAINST.conf" ] ; then
     echo "AFRA-I no está adecuadamente instalado en el sistema. Ejecute AFRAINST."
-    exit
+    return $error
 fi
 
 # Cargo valores del archivo de configuracion
@@ -127,7 +130,7 @@ if [ "$faltantes_bindir" != "" ] || [ "$faltantes_maedir" != "" ] || [ "$faltant
         echo
         echo "Para reparar esto debe borrar el archivo \"AFRAINST.conf\" en el directorio $CONFDIR, y luego ejecutar AFRAINST para realizar la instalación de AFRA-I nuevamente."
     fi
-    exit
+    return $error
 fi
 
 # Verificar permisos
@@ -138,7 +141,7 @@ for archivo in ${archivos[@]} ; do
         if [ ! -x "$archivo" ] || [ ! -r "$archivo" ] ; then
             grabar_en_log "No es posible cambiar los permisos del archivo $archivo." "ERR"
             echo "No es posible cambiar los permisos del archivo $archivo."
-            exit 
+            return $error 
         fi
     fi
 done
@@ -193,8 +196,8 @@ while [ "$opcion" != Si ] ; do
         opcion=Si # Opcion por default
     fi
     if [ "$opcion" == No ] ; then
-        echo "Para ejecutar el demonio AFRARECI utilice el siguiente comando: Arrancar.sh AFRARECI"
-        exit
+        echo "Para ejecutar el demonio AFRARECI utilice el siguiente comando: ./Arrancar.sh AFRARECI"
+        return $error
     fi
 done
 "$BINDIR/Arrancar.sh" AFRARECI
