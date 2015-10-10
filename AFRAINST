@@ -51,7 +51,7 @@ function normalizar_path {
 if ! [ -d conf ] ; then
     grabar_en_log "No existe el directorio de configuración." "ERR"
     echo "No existe el directorio de configuración. Descomprima el paquete de instalación nuevamente."
-    return $error
+    exit $error
 fi
 
 # Verificar si ya esta instalado
@@ -63,13 +63,13 @@ if ! [ -f "$CONFDIR"/AFRAINST.conf ] ; then
     if [ ! $version_perl -ge $perl_minimo ] ; then
         grabar_en_log "No cuenta con Perl $perl_minimo o superior." "ERR" 
         echo -e "Para ejecutar el sistema AFRA-I es necesario contar con Perl 5 o superior.\n\nEfectúe su instalación e inténtelo nuevamente.\n\nProceso de instalación cancelado." 
-        return $error
+        exit $error
     fi
     
     while [ "$opcion1" != Si ] ; do
         obtener_valor opcion1 "***********************************************************\n*           Proceso de Instalación de \"AFRA-I\"            *\n* Tema I Copyright © Grupo 01 - Segundo Cuatrimestre 2015 *\n***********************************************************\nA T E N C I O N: Al instalar UD. expresa aceptar los térmi-\nnos y condiciones del \"ACUERDO DE LICENCIA DE SOFTWARE\"\nincluido en este paquete.\n¿Acepta? (Si–No): " Si
         if [ "$opcion1" == No ] ; then
-            return $ok
+            exit $ok
         fi
     done
     
@@ -97,7 +97,7 @@ if ! [ -f "$CONFDIR"/AFRAINST.conf ] ; then
         if [[ $disponible < $DATASIZE ]] ; then
             grabar_en_log "Insuficiente espacio en disco. Espacio disponible: " $disponible "MB. Espacio requerido: " $DATASIZE "MB. Inténtelo nuevamente." "ERR"
             echo -e "Insuficiente espacio en disco.\n\nEspacio disponible: " $disponible "MB.\n\nEspacio requerido: " $DATASIZE "MB.\n\nInténtelo nuevamente."
-            return $error
+            exit $error
         fi
         
         obtener_valor ACEPDIR "Defina el directorio de grabación de los archivos de llamadas aceptadas ($ACEPDIR): " "$ACEPDIR"
@@ -145,7 +145,7 @@ if ! [ -f "$CONFDIR"/AFRAINST.conf ] ; then
     while [ "$opcion3" != Si ] ; do
         obtener_valor opcion3 "Iniciando instalación. ¿Está Ud. seguro? (Si-No): " Si
         if [ "$opcion3" == No ] ; then
-            return $ok
+            exit $ok
         fi
     done
     
@@ -292,7 +292,7 @@ else
         while [ "$opcion4" != Si ] ; do
             obtener_valor opcion4 "¿Desea completar la instalación? (Si-No): " Si
             if [ "$opcion4" == No ] ; then
-                return $ok
+                exit $ok
             fi
         done
         

@@ -108,11 +108,14 @@ else
 	#Hipotesis General: Se va usar solo un numero de secuencia para toda la instalacion
 	#Hay que buscar en el archivo de configuracion el numero de secuencia (considero que va a tener nombre SECUENCIA)
 	sec_value=`grep SECUENCIA "$CONFDIR"/AFRAINST.conf | cut -d '=' -f 2`
-	#Actualizar el valor de secuencia dentro del archivo de configuracion 
+	#Actualizar el valor de secuencia dentro del archivo de configuracion
 	new_value=$((sec_value + 1))
 	#Hipotesis General: Se va  usar un unico directorio de /duplicados para todo el sistema
 	sed -i s/SECUENCIA=$sec_value/SECUENCIA=$new_value/ "$CONFDIR"/AFRAINST.conf
 	#Mover el archivo al directorio /duplicados y le agrego al nombre del archivo la secuencia
-	mv "${$2}/$ORIGEN_FILE" "$DUPDIR/${ORIGEN_FILE}.$SECUENCIA"
+	if ! [ -d "$2/duplicados" ] ; then
+	    mkdir "$2/duplicados"
+	fi
+	mv "$2/$ORIGEN_FILE" "$2/duplicados/$ORIGEN_FILE.$sec_value"
 fi
 
