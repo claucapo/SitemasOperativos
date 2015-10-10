@@ -1,15 +1,5 @@
 #!/bin/bash
 
-ACEPDIR=acepdir
-MAEDIR=maedir
-PROCDIR=procdir
-RECHDIR=rechdir
-export CONFDIR="conf"
-export DUPDIR=dupdir
-export BINDIR=.
-export LOGDIR=.
-export LOGSIZE=5000
-
 MAESTRO_PAISES="$MAEDIR/CdP.mae"
 MAESTRO_AREAS="$MAEDIR/CdA.mae"
 MAESTRO_CENTRALES="$MAEDIR/CdC.mae"
