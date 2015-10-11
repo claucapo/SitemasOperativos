@@ -66,7 +66,7 @@ sub verificar_entorno {
   die "No se puede ejecutar: Primero debe correr AFRAINIC para preparar el entorno.\n" if not $ENV{'BINDIR'};
 
   # No puede correr si ya hay una instancia en ejecucion
-  my @ps = `ps -ef | grep AFRALIST | grep -v grep`;
+  my @ps = `ps -ef | grep '\./AFRALIST' | grep -v grep`;
   die "Error: AFRALIST ya se esta ejecutando!\n" if @ps.size > 1;
   
   return 0
@@ -270,7 +270,7 @@ sub resolver_consulta {
     $cant_filtros++ if scalar(@numeros_seleccionados) > 0;
     &clear;
     say "*****************************************";
-    say "MENU : Principal Filtros";
+    say "MENU : Principal - Filtros";
     say "1 - Seleccionar Archivos ($cant_seleccionados archivos)";
     say "2 - Seleccionar Filtros ($cant_filtros filtros)";
     if ($grabar) { 
@@ -615,7 +615,7 @@ sub resolver_estadistica {
   while ($op0 != 7) {
     &clear;
     say "*****************************************";
-    say "MENU : Principal Estadisticas";
+    say "MENU : Principal - Estadisticas";
     say "1 - Seleccionar Filtro Periodo aniollamada-mesllamada ()";
     say "2 - Ranking de llamadas sospechosas por central";
     say "3 - Ranking de llamadas sospechosas por oficina";
