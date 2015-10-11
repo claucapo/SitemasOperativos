@@ -270,7 +270,7 @@ sub resolver_consulta {
     $cant_filtros++ if scalar(@numeros_seleccionados) > 0;
     &clear;
     say "*****************************************";
-    say "MENU : Principal";
+    say "MENU : Principal Filtros";
     say "1 - Seleccionar Archivos ($cant_seleccionados archivos)";
     say "2 - Seleccionar Filtros ($cant_filtros filtros)";
     if ($grabar) { 
@@ -538,16 +538,26 @@ sub resolver_consulta {
 # Resuelve estadisticas sobre los archivos de llamadas sospechosas
 # =============================================================================
 sub resolver_estadistica {
-
-  say "resolver_estadistica";
   my $grabar = $_[0];
+
+  &clear;
+  say "*****************************************";
+  say "MENU : Principal Estadisticas";
+  say "1 - Seleccionar Filtro Periodo aniollamada-mesllamada ()";
+  say "2 - Ranking de llamadas sospechosas por central";
+  say "3 - Ranking de llamadas sospechosas por oficina";
+  say "4 - Ranking de llamadas sospechosas por agente";
+  say "5 - Ranking de llamadas sospechosas por destino";
+  say "6 - Ranking de llamadas sospechosas por umbrales";
+  say "7 - Salir";
+  say "*****************************************";
+  #say "Seleccione opcion y presione enter.";
 
   # Las estadísticas deben permitir responder preguntas tales como:
   
   # Cuál es la central con mayor cantidad de llamadas sospechosas? // Cual es el ranking de centrales?
   #   Mostrar además del código, la descripción de la central
   say "Ranking de llamadas sospechosas por central";
-  say "<CodCentral>: <cantidad>";
   
   my @centrales_disponibles;
   open(my $fh, "<", "$ENV{'MAEDIR'}/CdC.mae") or die "No se pudo abrir el archivo: $!\n";
@@ -570,26 +580,30 @@ sub resolver_estadistica {
       # ignorar . y .. :
       next if ($_ eq "." || $_ eq "..");
       if ( ! -x "$ENV{'PROCDIR'}/$_" ) {
-    $central=$centrales_disponibles[$i];
-    $cantidad=`grep "^$central;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*\$" "$ENV{'PROCDIR'}/$_" | wc -l`;
-    chomp($cantidad);
-    $table{$central}=$cantidad;
+        $central=$centrales_disponibles[$i];
+        $cantidad=`grep "^$central;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*\$" "$ENV{'PROCDIR'}/$_" | wc -l`;
+        chomp($cantidad);
+        $table{$central}=$cantidad;
       }
     }
   }    
 
-  @valores = values(%table);
-  @sorted_valores = sort(@valores);
-  $ultimo_valor = $sorted_valores[$#sorted_valores];
-  @claves = keys(%table);
-
-  foreach my $clave(@claves) {
-  $valor_actual = $table{$clave};
-    if ($valor_actual eq $ultimo_valor) {
-      print "$clave: ";
-      print "$valor_actual\n";
-    }
+  foreach my $llave (sort {$table{$b} <=> $table{$a}} keys %table) {
+    print("$llave "); print("$table{$llave}\n");
   }
+
+  # @valores = values(%table);
+  # @sorted_valores = sort(@valores);
+  # $ultimo_valor = $sorted_valores[$#sorted_valores];
+  # @claves = keys(%table);
+
+  # foreach my $clave(@claves) {
+  # $valor_actual = $table{$clave};
+  #   if ($valor_actual eq $ultimo_valor) {
+  #     print "$clave: ";
+  #     print "$valor_actual\n";
+  #   }
+  # }
 
   # Cuál es la oficina con mayor cantidad de llamadas sospechosas? // Cual es el ranking de oficinas?
   say "Ranking de llamadas sospechosas por oficina";
