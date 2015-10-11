@@ -535,28 +535,9 @@ sub resolver_consulta {
 } # Fin: resolver_consulta
 
 # =============================================================================
-# Resuelve estadisticas sobre los archivos de llamadas sospechosas
+# Resuelve estadisticas 
 # =============================================================================
-sub resolver_estadistica {
-  my $grabar = $_[0];
-
-  &clear;
-  say "*****************************************";
-  say "MENU : Principal Estadisticas";
-  say "1 - Seleccionar Filtro Periodo aniollamada-mesllamada ()";
-  say "2 - Ranking de llamadas sospechosas por central";
-  say "3 - Ranking de llamadas sospechosas por oficina";
-  say "4 - Ranking de llamadas sospechosas por agente";
-  say "5 - Ranking de llamadas sospechosas por destino";
-  say "6 - Ranking de llamadas sospechosas por umbrales";
-  say "7 - Salir";
-  say "*****************************************";
-  #say "Seleccione opcion y presione enter.";
-
-  # Las estadísticas deben permitir responder preguntas tales como:
-  
-  # Cuál es la central con mayor cantidad de llamadas sospechosas? // Cual es el ranking de centrales?
-  #   Mostrar además del código, la descripción de la central
+sub ranking_centrales {
   say "Ranking de llamadas sospechosas por central";
   
   my @centrales_disponibles;
@@ -591,42 +572,104 @@ sub resolver_estadistica {
   foreach my $llave (sort {$table{$b} <=> $table{$a}} keys %table) {
     print("$llave "); print("$table{$llave}\n");
   }
+} # Fin: ranking_centrales
 
-  # @valores = values(%table);
-  # @sorted_valores = sort(@valores);
-  # $ultimo_valor = $sorted_valores[$#sorted_valores];
-  # @claves = keys(%table);
-
-  # foreach my $clave(@claves) {
-  # $valor_actual = $table{$clave};
-  #   if ($valor_actual eq $ultimo_valor) {
-  #     print "$clave: ";
-  #     print "$valor_actual\n";
-  #   }
-  # }
-
-  # Cuál es la oficina con mayor cantidad de llamadas sospechosas? // Cual es el ranking de oficinas?
+# =============================================================================
+# Resuelve el ranking de llamadas sospechosas por oficina 
+# =============================================================================
+sub ranking_oficinas {
   say "Ranking de llamadas sospechosas por oficina";
-  
-  # Cuál es el agente con mayor cantidad de llamadas sospechosas? // Cual es el ranking de agentes?
-  #   Mostar además del id del agente, el correo electrónico y la oficina a la que pertenece
+
+} # Fin: ranking_oficinas
+
+# =============================================================================
+# Resuelve el ranking de llamadas sospechosas por agente
+# =============================================================================
+sub ranking_agentes {
   say "Ranking de llamadas sospechosas por agente";
-  
-  # Cuál es el destino con mayor cantidad de llamadas sospechosas? // Cual es el ranking de destinos?
-  #   Mostrar además del código, el nombre del país o el nombre de la ciudad –provincia según corresponda
+
+} # Fin: ranking_agentes
+
+# =============================================================================
+# Resuelve el ranking de llamadas sospechosas por destinos
+# =============================================================================
+sub ranking_destinos {
   say "Ranking de llamadas sospechosas por destino";
-  
-  # Cuál es el ranking de umbrales?
-  #   Para este ranking no evaluar los umbrales con una sola llamada sospechosa.
+
+} # Fin: ranking_destinos
+
+# =============================================================================
+# Resuelve el ranking de llamadas sospechosas por umbrales
+# =============================================================================
+sub ranking_umbrales {
   say "Ranking de llamadas sospechosas por umbrales";
 
-  # El filtro es el periodo aniollamadamesllamada (un periodo, un rango de periodos, todos los periodos)
+} # Fin: ranking_umbrales
+
+# =============================================================================
+# Resuelve estadisticas sobre los archivos de llamadas sospechosas
+# =============================================================================
+sub resolver_estadistica {
+  my $grabar = $_[0];
+
+  while ($op0 != 7) {
+    &clear;
+    say "*****************************************";
+    say "MENU : Principal Estadisticas";
+    say "1 - Seleccionar Filtro Periodo aniollamada-mesllamada ()";
+    say "2 - Ranking de llamadas sospechosas por central";
+    say "3 - Ranking de llamadas sospechosas por oficina";
+    say "4 - Ranking de llamadas sospechosas por agente";
+    say "5 - Ranking de llamadas sospechosas por destino";
+    say "6 - Ranking de llamadas sospechosas por umbrales";
+    say "7 - Salir";
+    say "*****************************************";
+    #say "Seleccione opcion y presione enter.";
+    $op0 = <STDIN>;
+    if ($op0 == 1) {
+      # Seleccionar los filtros
+      # El filtro es el periodo aniollamadamesllamada (un periodo, un rango de periodos, todos los periodos)
+      print "Presione enter para volver al menu principal. "; <STDIN>
+    }
+    if ($op0 == 2) {
+      # Cuál es la central con mayor cantidad de llamadas sospechosas? // Cual es el ranking de centrales?
+      #   Mostrar además del código, la descripción de la central
+      ranking_centrales;
+      print "Presione enter para volver al menu principal. "; <STDIN>
+    }
+    if ($op0 == 3) {
+      # Cuál es la oficina con mayor cantidad de llamadas sospechosas? // Cual es el ranking de oficinas?
+      ranking_oficinas;
+      print "Presione enter para volver al menu principal. "; <STDIN>
+    }
+    if ($op0 == 4) {
+      # Cuál es el agente con mayor cantidad de llamadas sospechosas? // Cual es el ranking de agentes?
+      #   Mostar además del id del agente, el correo electrónico y la oficina a la que pertenece
+      ranking_agentes;
+      print "Presione enter para volver al menu principal. "; <STDIN>
+    }
+    if ($op0 == 5) {
+      # Cuál es el destino con mayor cantidad de llamadas sospechosas? // Cual es el ranking de destinos?
+      #   Mostrar además del código, el nombre del país o el nombre de la ciudad –provincia según corresponda
+      ranking_destinos;
+      print "Presione enter para volver al menu principal. "; <STDIN>
+    }
+    if ($op0 == 6) {
+      # Cuál es el ranking de umbrales?
+      #   Para este ranking no evaluar los umbrales con una sola llamada sospechosa.
+      ranking_umbrales;
+      print "Presione enter para volver al menu principal. "; <STDIN>
+    }
+  }
   
   # En los casos de central, oficina y agente el ranking puede ser por cantidad de segundos (acumular
   # los tiempos de conversación) o por cantidad de llamadas. Solicitar al usuario que quiere ver: ranking
   # de tiempo, ranking de cantidad o ambos
   
   # Si se indicó -w (grabar) grabar el resultado
+
+  &clear;
+  say "Gracias por utilizar AFRALIST";
 
   return 0
 } # Fin: resolver_estadistica
