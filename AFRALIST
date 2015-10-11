@@ -225,7 +225,7 @@ sub procesar_archivos {
 sub resolver_consulta {
   my $grabar = $_[0];
 
-  # # SELECCION DE ARCHIVOS
+  # SELECCION DE ARCHIVOS
   my @arch_seleccionados;
 
   # SELECCION DE CENTRALES
@@ -563,17 +563,22 @@ sub ranking_centrales {
         $cantidad = `grep "^$central;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*\$" "$ENV{'PROCDIR'}/$_" | wc -l`;
         chomp($cantidad);
         if ($table{$central}) {
-	  $table{$central} = $table{$central} + $cantidad;
+          $table{$central} = $table{$central} + $cantidad;
         } else {
-	  $table{$central} = $cantidad;
+          $table{$central} = $cantidad;
         }
       }
     }
   }    
 
+  @resultados = ();
+  push(@resultados, "codigo_central;cant_llamadas;desc_central");
   foreach my $llave (sort {$table{$b} <=> $table{$a}} keys %table) {
+    push(@resultados, "$llave;$table{$llave};$centrales{$llave}");
     print("$llave "); print("$table{$llave}"); print("\t($centrales{$llave})\n");
   }
+
+  return @resultados;
 } # Fin: ranking_centrales
 
 # =============================================================================
@@ -597,18 +602,18 @@ sub ranking_oficinas {
     foreach $archivo (@recorrer) {
       #say "archivo: $archivo";
       $cantidad = `cat "$ENV{'PROCDIR'}/$archivo" | wc -l`;
-      if ($table{$oficina}) {
-	$table{$oficina} = $table{$oficina} + $cantidad;
-      } else {
-	$table{$oficina} = $cantidad;
-      }
+      $table{$oficina} = $table{$oficina} + $cantidad;
     }
   }
 
+  @resultados = ();
+  push(@resultados, "codigo_oficina;cant_llamadas");
   foreach my $llave (sort {$table{$b} <=> $table{$a}} keys %table) {
+    push(@resultados, "$llave;$table{$llave}");
     print("$llave "); print("$table{$llave}\n");
   }
 
+  return @resultados;
 } # Fin: ranking_oficinas
 
 # =============================================================================
@@ -649,10 +654,15 @@ sub ranking_agentes {
     }
   }    
 
+  @resultados = ();
+  push(@resultados, "agente;cant_llamadas;oficina-email");
   foreach my $llave (sort {$hashCantidades{$b} <=> $hashCantidades{$a}} keys %hashCantidades) {
+    push(@resultados, "$llave;$hashCantidades{$llave};$agentes{$llave}");
     print("agente: $llave\n"); print("cantidad: $hashCantidades{$llave}\n"); print("oficina - e-mail: $agentes{$llave}"."\n");
     print("----------------------------------------------------------------------------\n");
   }
+
+  return @resultados;
 } # Fin: ranking_agentes
 
 # =============================================================================
@@ -677,6 +687,10 @@ sub ranking_umbrales {
   say "Ranking de llamadas sospechosas por umbrales";
   say "*****************************************";
 
+  @resultados = ();
+  push(@resultados, "umbral;cant_llamadas");
+
+  return @resultados;
 } # Fin: ranking_umbrales
 
 # =============================================================================
@@ -705,7 +719,6 @@ sub resolver_estadistica {
     if ($op0 == 1) {
       # Seleccionar los filtros
       # El filtro es el periodo aniollamadamesllamada (un periodo, un rango de periodos, todos los periodos)
-
       # Selecciona archivos
       $filtro = '';
       while ($filtro ne 'T') {
@@ -737,49 +750,71 @@ sub resolver_estadistica {
 
     }
     $cant_seleccionados = scalar @seleccionados;
+    @resultados = ();
     if ($op0 == 2 && $cant_seleccionados > 0) {
       # Cuál es la central con mayor cantidad de llamadas sospechosas? // Cual es el ranking de centrales?
       #   Mostrar además del código, la descripción de la central
       @archivos = @seleccionados;
-      ranking_centrales(\@archivos);
-      print "Presione enter para volver al menu principal. "; <STDIN>
+      @resultados = ranking_centrales(\@archivos);
+      unless ($grabar) {print "Presione enter para volver al menu principal. "; <STDIN>;}
     }
     if ($op0 == 3 && $cant_seleccionados > 0) {
       # Cuál es la oficina con mayor cantidad de llamadas sospechosas? // Cual es el ranking de oficinas?
       @archivos = @seleccionados;
-      ranking_oficinas(\@archivos);
-      print "Presione enter para volver al menu principal. "; <STDIN>
+      @resultados = ranking_oficinas(\@archivos);
+      unless ($grabar) {print "Presione enter para volver al menu principal. "; <STDIN>;}
     }
     if ($op0 == 4 && $cant_seleccionados > 0) {
       # Cuál es el agente con mayor cantidad de llamadas sospechosas? // Cual es el ranking de agentes?
       #   Mostar además del id del agente, el correo electrónico y la oficina a la que pertenece
       @archivos = @seleccionados;
-      ranking_agentes(\@archivos);
-      print "Presione enter para volver al menu principal. "; <STDIN>
+      @resultados = ranking_agentes(\@archivos);
+      unless ($grabar) {print "Presione enter para volver al menu principal. "; <STDIN>;}
     }
     if ($op0 == 5 && $cant_seleccionados > 0) {
       # Cuál es el destino con mayor cantidad de llamadas sospechosas? // Cual es el ranking de destinos?
       #   Mostrar además del código, el nombre del país o el nombre de la ciudad –provincia según corresponda
       @archivos = @seleccionados;
-      ranking_destinos(\@archivos);
-      print "Presione enter para volver al menu principal. "; <STDIN>
+      @resultados = ranking_destinos(\@archivos);
+      unless ($grabar) {print "Presione enter para volver al menu principal. "; <STDIN>;}
     }
     if ($op0 == 6 && $cant_seleccionados > 0) {
       # Cuál es el ranking de umbrales?
       #   Para este ranking no evaluar los umbrales con una sola llamada sospechosa.
       @archivos = @seleccionados;
-      ranking_umbrales(\@archivos);
-      print "Presione enter para volver al menu principal. "; <STDIN>
+      @resultados = ranking_umbrales(\@archivos);
+      unless ($grabar) {print "Presione enter para volver al menu principal. "; <STDIN>;}
     }
     if ($op0 != 7 && !$cant_seleccionados > 0) {
       # Precondicion, debe seleccionar archivos
       say "Error: Debe seleccionar archivos a consultar en la opcion 1.";
       sleep 2;
     }
+    # Si se indicó -w (grabar) grabar el resultado
+    if ($grabar && scalar @resultados > 0) {      
+      &clear;
+      say "*****************************************";
+      say "Generando reporte en archivo";
+      print "Cantidad de registros: "; say scalar @resultados;
+      say "*****************************************";
+      # Definir nombre de archivo de salida
+      print "Ingrese nombre de archivo para guardar el reporte: ";
+      chomp($nom = <STDIN>);
+      $folder = "$ENV{'REPODIR'}/estadisticas";
+      $salida = "$folder/$nom.csv";
+      say "*****************************************";
+      say "Archivo generado: $salida";
+      # Grabar en archivo
+      mkdir $folder unless -d $folder;
+      open($fhs, ">", "$salida") or die "Error: No se puede abrir el archivo de salida: $!"; 
+      foreach (@resultados) {
+        print $fhs "$_\n";
+      }
+      close $fhs;
+      print "Presione enter para volver al menu principal. "; <STDIN>
+    }
 
   }
-    
-  # Si se indicó -w (grabar) grabar el resultado
 
   &clear;
   say "Gracias por utilizar AFRALIST";
