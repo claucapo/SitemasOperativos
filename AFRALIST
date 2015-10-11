@@ -538,8 +538,12 @@ sub resolver_consulta {
 # Resuelve estadisticas 
 # =============================================================================
 sub ranking_centrales {
+  my ($archivos) = @_;
+  &clear;
+  say "*****************************************";
   say "Ranking de llamadas sospechosas por central";
-  
+  say "*****************************************";
+
   %centrales = ();
   my @centrales_disponibles;
   open(my $fh, "<", "$ENV{'MAEDIR'}/CdC.mae") or die "No se pudo abrir el archivo: $!\n";
@@ -594,7 +598,10 @@ sub ranking_agentes {
 # Resuelve el ranking de llamadas sospechosas por destinos
 # =============================================================================
 sub ranking_destinos {
+  #&clear;
+  say "*****************************************";
   say "Ranking de llamadas sospechosas por destino";
+  say "*****************************************";
 
 } # Fin: ranking_destinos
 
@@ -602,7 +609,10 @@ sub ranking_destinos {
 # Resuelve el ranking de llamadas sospechosas por umbrales
 # =============================================================================
 sub ranking_umbrales {
+  #&clear;
+  say "*****************************************";
   say "Ranking de llamadas sospechosas por umbrales";
+  say "*****************************************";
 
 } # Fin: ranking_umbrales
 
@@ -612,11 +622,14 @@ sub ranking_umbrales {
 sub resolver_estadistica {
   my $grabar = $_[0];
 
+  my @seleccionados;
+
   while ($op0 != 7) {
+    $cant_seleccionados = scalar @seleccionados;
     &clear;
     say "*****************************************";
     say "MENU : Principal - Estadisticas";
-    say "1 - Seleccionar Filtro Periodo AñoMes (Todos)";
+    say "1 - Seleccionar Filtro Periodo AñoMes ($cant_seleccionados archivos)";
     say "2 - Ranking de llamadas sospechosas por central";
     say "3 - Ranking de llamadas sospechosas por oficina";
     say "4 - Ranking de llamadas sospechosas por agente";
@@ -629,37 +642,78 @@ sub resolver_estadistica {
     if ($op0 == 1) {
       # Seleccionar los filtros
       # El filtro es el periodo aniollamadamesllamada (un periodo, un rango de periodos, todos los periodos)
-      print "Presione enter para volver al menu principal. "; <STDIN>
+
+      # Selecciona archivos
+      $filtro = '';
+      while ($filtro ne 'T') {
+        # Ver los archivos disponibles
+        @disponibles = ();
+        @disponibles = glob "$ENV{'PROCDIR'}/*";
+        @disponibles = map m|([^/]+)$|, @disponibles;
+        # Quitamos el subdirectorio
+        @disponibles = grep(!/^proc$/, @disponibles);
+        &clear;
+        say "*****************************************";
+        say "MENU : Seleccionar Archivos";
+        say "Archivos disponibles: ";
+        print join(" ", @disponibles); print("\n");
+        say "Archivos seleccionados: ";
+        print join(" ", @seleccionados); print("\n");
+        say "*****************************************";
+        say "Agregar archivos por aniomes, blanco para seleccionar todos, T para terminar, B para borrar todos:";
+        chomp($filtro = <STDIN>);
+        if ($filtro eq "T") {
+          # Sale sin filtrar
+        } elsif ($filtro eq "B") {
+          @seleccionados = (); # Borrar toda la seleccion
+        } else {
+          push(@seleccionados, grep(/.*$filtro.*/, @disponibles));
+          @seleccionados = uniq(@seleccionados);
+        }
+      }
+
     }
-    if ($op0 == 2) {
+    $cant_seleccionados = scalar @seleccionados;
+    if ($op0 == 2 && $cant_seleccionados > 0) {
       # Cuál es la central con mayor cantidad de llamadas sospechosas? // Cual es el ranking de centrales?
       #   Mostrar además del código, la descripción de la central
-      ranking_centrales;
+      @archivos = @seleccionados;
+      ranking_centrales(\@archivos);
       print "Presione enter para volver al menu principal. "; <STDIN>
     }
-    if ($op0 == 3) {
+    if ($op0 == 3 && $cant_seleccionados > 0) {
       # Cuál es la oficina con mayor cantidad de llamadas sospechosas? // Cual es el ranking de oficinas?
-      ranking_oficinas;
+      @archivos = @seleccionados;
+      ranking_oficinas(\@archivos);
       print "Presione enter para volver al menu principal. "; <STDIN>
     }
-    if ($op0 == 4) {
+    if ($op0 == 4 && $cant_seleccionados > 0) {
       # Cuál es el agente con mayor cantidad de llamadas sospechosas? // Cual es el ranking de agentes?
       #   Mostar además del id del agente, el correo electrónico y la oficina a la que pertenece
-      ranking_agentes;
+      @archivos = @seleccionados;
+      ranking_agentes(\@archivos);
       print "Presione enter para volver al menu principal. "; <STDIN>
     }
-    if ($op0 == 5) {
+    if ($op0 == 5 && $cant_seleccionados > 0) {
       # Cuál es el destino con mayor cantidad de llamadas sospechosas? // Cual es el ranking de destinos?
       #   Mostrar además del código, el nombre del país o el nombre de la ciudad –provincia según corresponda
-      ranking_destinos;
+      @archivos = @seleccionados;
+      ranking_destinos(\@archivos);
       print "Presione enter para volver al menu principal. "; <STDIN>
     }
-    if ($op0 == 6) {
+    if ($op0 == 6 && $cant_seleccionados > 0) {
       # Cuál es el ranking de umbrales?
       #   Para este ranking no evaluar los umbrales con una sola llamada sospechosa.
-      ranking_umbrales;
+      @archivos = @seleccionados;
+      ranking_umbrales(\@archivos);
       print "Presione enter para volver al menu principal. "; <STDIN>
     }
+    if ($op0 != 7 && !$cant_seleccionados > 0) {
+      # Precondicion, debe seleccionar archivos
+      say "Error: Debe seleccionar archivos a consultar en la opcion 1.";
+      sleep 2;
+    }
+
   }
   
   # En los casos de central, oficina y agente el ranking puede ser por cantidad de segundos (acumular
