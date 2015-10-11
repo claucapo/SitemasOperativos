@@ -92,7 +92,7 @@ if ! [ -f "$CONFDIR"/AFRAINST.conf ] ; then
         DATASIZE=$datasize
         
         # Verificar espacio en disco
-        disponible=`df -BM | tail -n 1 | tr -s ' ' | cut -d' ' -f 4`
+        disponible=`df -BM | grep sda | tail -n 1 | tr -s ' ' | cut -d' ' -f 4`
         disponible="${disponible%?}" # Saco la M del final
         if [[ $disponible < $DATASIZE ]] ; then
             grabar_en_log "Insuficiente espacio en disco. Espacio disponible: " $disponible "MB. Espacio requerido: " $DATASIZE "MB. Inténtelo nuevamente." "ERR"
