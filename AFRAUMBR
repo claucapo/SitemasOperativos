@@ -153,7 +153,7 @@ function determinarSospechosa() {
 		local archivoSospechosas="$PROCDIR/${oficina}_$anioMesLlamada"
 
 		if [ $tiempoConversacion -gt $tope ]; then
-			local registroSospechosas="$codigoCentral;$codigoAgente;$umbralId;$tipoLLamada;$inicioLLamada,$tiempoConversacion;$nroA_codigoArea,$nroA_numeroLinea;$nroB_codigoPais,$nroB_codigoArea;$nroB_numeroLinea;$fechaProceso"
+			local registroSospechosas="$codigoCentral;$codigoAgente;$umbralId;$tipoLLamada;$inicioLLamada;$tiempoConversacion;$nroA_codigoArea;$nroA_numeroLinea;$nroB_codigoPais;$nroB_codigoArea;$nroB_numeroLinea;$fechaProceso"
 			echo "$registroSospechosas" >> "$archivoSospechosas"
 			let cantidadSospechosas++
 		else
@@ -184,7 +184,7 @@ function rechazarRegistro() {
 	archivoLlamadas=${archivoLlamadas##*/}
 	archivoLlamadas=${archivoLlamadas%%.*}
 	
-	local registroRechazadas="$archivoLlamadas;$motivo;$codigoAgente;$inicioLLamada;$tiempoConversacion;$nroA_codigoArea,$nroA_numeroLinea;$nroB_codigoPais,$nroB_codigoArea;$nroB_numeroLinea"
+	local registroRechazadas="$archivoLlamadas;$motivo;$codigoAgente;$inicioLLamada;$tiempoConversacion;$nroA_codigoArea;$nroA_numeroLinea;$nroB_codigoPais;$nroB_codigoArea;$nroB_numeroLinea"
 	local archivoRechazadas="$RECHDIR/llamadas/${codigoCentral}.rech"
 	
 	echo "$registroRechazadas" >> "$archivoRechazadas"
