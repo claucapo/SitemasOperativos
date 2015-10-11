@@ -669,12 +669,40 @@ sub ranking_agentes {
 # Resuelve el ranking de llamadas sospechosas por destinos
 # =============================================================================
 sub ranking_destinos {
+
   my ($archivos) = @_;
   &clear;
   say "*****************************************";
   say "Ranking de llamadas sospechosas por destino";
   say "*****************************************";
 
+  my %hashCantidades;
+  my $cantidad;
+
+  foreach $archivo (@archivos) {
+
+    open($fh, "<", "$ENV{'PROCDIR'}/$archivo") or die "No se pudo abrir el archivo $ENV{'PROCDIR'} $archivo: $!\n";
+    while(<$fh>) { chomp; 
+      $_ =~ /^[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;([^;]*);([^;]*);([^;]*);[^;]*;$/ || next; 
+      $codigoPais=$1;
+      $codigoArea=$2;
+      $numeroLinea=$3;
+      if ($hashCantidades{$codigoPais.$codigoArea.$numeroLinea}) {
+	$hashCantidades{$codigoPais.$codigoArea.$numeroLinea} = $hashCantidades{$codigoPais.$codigoArea.$numeroLinea} + 1;
+      } else {
+	$hashCantidades{$codigoPais.$codigoArea.$numeroLinea} = 1;
+      }
+    }
+    close $fh;
+    $fh = '';
+
+    foreach my $llave (sort {$hashCantidades{$b} <=> $hashCantidades{$a}} keys %hashCantidades) {
+      print("numero destino: $llave\n");
+      print("cantidad: $hashCantidades{$llave}\n");
+      print("----------------------------------------------\n");
+    }
+  }
+#
 } # Fin: ranking_destinos
 
 # =============================================================================
