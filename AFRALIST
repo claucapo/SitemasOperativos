@@ -557,18 +557,12 @@ sub ranking_centrales {
   my %table;
   my $cantidad;
   for ($i = 0; $i<= $#centrales_disponibles; $i++) {
-    if (opendir(DIRH,$ENV{'PROCDIR'})) {
-      @flist=readdir(DIRH);
-      closedir(DIRH);
-    }
-    foreach (@flist) {
-      # ignorar . y .. :
-      next if ($_ eq "." || $_ eq "..");
+    foreach (@archivos) {
       if ( ! -x "$ENV{'PROCDIR'}/$_" ) {
-        $central=$centrales_disponibles[$i];
-        $cantidad=`grep "^$central;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*\$" "$ENV{'PROCDIR'}/$_" | wc -l`;
+        $central = $centrales_disponibles[$i];
+        $cantidad = `grep "^$central;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*\$" "$ENV{'PROCDIR'}/$_" | wc -l`;
         chomp($cantidad);
-        $table{$central}=$cantidad;
+        $table{$central} = $cantidad;
       }
     }
   }    
@@ -598,7 +592,8 @@ sub ranking_agentes {
 # Resuelve el ranking de llamadas sospechosas por destinos
 # =============================================================================
 sub ranking_destinos {
-  #&clear;
+  my ($archivos) = @_;
+  &clear;
   say "*****************************************";
   say "Ranking de llamadas sospechosas por destino";
   say "*****************************************";
@@ -609,7 +604,8 @@ sub ranking_destinos {
 # Resuelve el ranking de llamadas sospechosas por umbrales
 # =============================================================================
 sub ranking_umbrales {
-  #&clear;
+  my ($archivos) = @_;
+  &clear;
   say "*****************************************";
   say "Ranking de llamadas sospechosas por umbrales";
   say "*****************************************";
