@@ -1,7 +1,7 @@
 #!/bin/bash
 # Script para instalar el sistema AFRA-I
 
-export GRUPO=$(dirname "$0") # Obtengo el directorio del script
+export GRUPO="$(cd -P -- "$(dirname -- "$0")" && pwd -P)" # Obtengo el directorio del script
 export CONFDIR="$GRUPO"/conf # Directorio del archivo de configuracion
 BINDIR="$GRUPO"/bin
 MAEDIR="$GRUPO"/mae
