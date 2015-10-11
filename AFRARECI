@@ -90,9 +90,9 @@ function aceptar_archivo(){
 	return 0	
 }
 
-function get_pid(){
-    local pid=`ps -e | grep '\($BINDIR\)\?/$1.sh' | sed 's/ \?\([0-9]*\).*/\1/' | awk '{print $1}' | head -n 1`
-    echo $pid
+function getPid(){
+    local ppid=`ps aux | grep "\($BINDIR\)\?/$1.sh" | grep -v grep | awk '{print $2}' | head -n 1`
+    echo $ppid
 }
 
 function hay_novedades_pendientes(){
