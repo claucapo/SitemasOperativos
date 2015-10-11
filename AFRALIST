@@ -66,7 +66,7 @@ sub verificar_entorno {
   die "No se puede ejecutar: Primero debe correr AFRAINIC para preparar el entorno.\n" if not $ENV{'BINDIR'};
 
   # No puede correr si ya hay una instancia en ejecucion
-  my @ps = `ps -ef | grep '\./AFRALIST' | grep perl | grep -v grep`;
+  my @ps = `ps -ef | grep AFRALIST  | grep perl | grep -v grep`;
   die "Error: AFRALIST ya se esta ejecutando!\n" if @ps.size > 1;
   
   return 0
@@ -588,6 +588,45 @@ sub ranking_oficinas {
 sub ranking_agentes {
   say "Ranking de llamadas sospechosas por agente";
 
+  %agentes = ();
+  my @agentes_disponibles;
+  print("$ENV{'MAEDIR'}/agentes.mae\n");
+  open(my $fh, "<", "$ENV{'MAEDIR'}/agentes.mae") or die "No se pudo abrir el archivo: $!\n";
+  while(<$fh>) { chomp; 
+    $_ =~ /^([^;]*);[^;]*;[^;]*;([^;]*);([^;]*)$/ || next; 
+    push(@agentes_disponibles, $1);
+    $agentes{$1} = $2 . " - " . $3;
+  } 
+  close $fh;
+
+  my %hashCantidades;
+  my $cantidad;
+  for ($i = 0; $i<= $#agentes_disponibles; $i++) {
+  
+    if (opendir(DIRH,$ENV{'PROCDIR'})) {
+      @flist=readdir(DIRH);
+      closedir(DIRH);
+    }
+    foreach (@flist) {
+      # ignorar . y .. :
+      next if ($_ eq "." || $_ eq "..");
+      if ( ! -x "$ENV{'PROCDIR'}/$_" ) {
+        $agente=$agentes_disponibles[$i];
+        $cantidad=`grep "^[^;]*;$agente;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*\$" "$ENV{'PROCDIR'}/$_" | wc -l`;
+        chomp($cantidad);
+        if ($hashCantidades{$agente}) {
+	  $hashCantidades{$agente}=$hashCantidades{$agente}+$cantidad;
+        } else {
+	  $hashCantidades{$agente}=$cantidad;
+        }
+      }
+    }
+  }    
+
+  foreach my $llave (sort {$hashCantidades{$b} <=> $hashCantidades{$a}} keys %hashCantidades) {
+    print("agente: $llave\n"); print("cantidad: $hashCantidades{$llave}\n"); print("oficina - e-mail: $agentes{$llave}"."\n");
+    print("----------------------------------------------------------------------------\n");
+  }
 } # Fin: ranking_agentes
 
 # =============================================================================
