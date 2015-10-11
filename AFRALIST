@@ -576,7 +576,30 @@ sub ranking_centrales {
 # Resuelve el ranking de llamadas sospechosas por oficina 
 # =============================================================================
 sub ranking_oficinas {
+  my ($archivos) = @_;
+  &clear;
+  say "*****************************************";
   say "Ranking de llamadas sospechosas por oficina";
+  say "*****************************************";
+
+  @oficinas = map(/(...)_.*$/, @archivos);
+  @oficinas = uniq(@oficinas);
+
+  foreach $oficina (@oficinas) {
+    #say "oficina: $oficina";
+    $table{$oficina} = 0;
+    @recorrer = grep(/$oficina/, @archivos);
+    #say "recorrer: @recorrer";
+    foreach $archivo (@recorrer) {
+      #say "archivo: $archivo";
+      $cantidad = `cat "$ENV{'PROCDIR'}/$archivo" | wc -l`;
+      $table{$oficina} = $table{$oficina} + $cantidad;
+    }
+  }
+
+  foreach my $llave (sort {$table{$b} <=> $table{$a}} keys %table) {
+    print("$llave "); print("$table{$llave}\n");
+  }
 
 } # Fin: ranking_oficinas
 
