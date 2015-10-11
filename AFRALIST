@@ -562,7 +562,11 @@ sub ranking_centrales {
         $central = $centrales_disponibles[$i];
         $cantidad = `grep "^$central;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*\$" "$ENV{'PROCDIR'}/$_" | wc -l`;
         chomp($cantidad);
-        $table{$central} = $cantidad;
+        if ($table{$central}) {
+	  $table{$central} = $table{$central} + $cantidad;
+        } else {
+	  $table{$central} = $cantidad;
+        }
       }
     }
   }    
@@ -593,7 +597,11 @@ sub ranking_oficinas {
     foreach $archivo (@recorrer) {
       #say "archivo: $archivo";
       $cantidad = `cat "$ENV{'PROCDIR'}/$archivo" | wc -l`;
-      $table{$oficina} = $table{$oficina} + $cantidad;
+      if ($table{$oficina}) {
+	$table{$oficina} = $table{$oficina} + $cantidad;
+      } else {
+	$table{$oficina} = $cantidad;
+      }
     }
   }
 
