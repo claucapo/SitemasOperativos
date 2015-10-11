@@ -75,7 +75,7 @@ case "$1" in
 		archivoLog="$LOGDIR/$where.log" ;;
 	*)
 		echo `date +%F`"|"`date +%T`" $user $nombreScript $defaultTipoMensaje Comando Gralog.sh no reconocio el nombre del script $where" >> "$loggerPathDefault"
-		exit ERROR_POR_PARAMETROS ;;
+		exit $ERROR_POR_PARAMETROS ;;
 esac
 
 if [ -f "$archivoLog" ]

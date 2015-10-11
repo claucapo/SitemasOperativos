@@ -1,9 +1,9 @@
 #!/bin/bash
 
-MAESTRO_PAISES="$MAEDIR/CdP.csv"
-MAESTRO_AREAS="$MAEDIR/CdA.csv"
-MAESTRO_CENTRALES="$MAEDIR/CdC.csv"
-MAESTRO_AGENTES="$MAEDIR/agentes.csv"
+MAESTRO_PAISES="$MAEDIR/CdP.mae"
+MAESTRO_AREAS="$MAEDIR/CdA.mae"
+MAESTRO_CENTRALES="$MAEDIR/CdC.mae"
+MAESTRO_AGENTES="$MAEDIR/agentes.mae"
 MAESTRO_UMBRALES="$MAEDIR/umbrales.tab"
 
 cantidadLlamadas=0
@@ -15,6 +15,25 @@ cantidadNoSospechosas=0
 
 archivosProcesados=0
 archivosRechazados=0
+
+function log_info() {
+	local mensaje=$1
+#	echo "INFO: $mensaje"
+    "$BINDIR"/GraLog.sh "AFRAUMBR" "$mensaje" "INFO"
+}
+
+function log_error() {
+	local mensaje=$1
+#	echo "ERR: $mensaje"
+    "$BINDIR"/GraLog.sh "AFRAUMBR" "$mensaje" "ERR"
+}
+
+function mover_a() {
+	local origen=$1
+	local destino=$2
+	local modulo='AFRAUMBR'
+	"$BINDIR"/MoverA.sh "${origen}" "${destino}" "$modulo"
+}
 
 function archivosLlamadas() {
 	ls -ltr "$ACEPDIR" | grep ^- | rev | cut -d' ' -f1 | rev
@@ -41,16 +60,17 @@ function procesarArchivo() {
 		mensaje="Se rechaza el archivo porque su estructura no se corresponde con el formato esperado: $archivo"
 		rechazarArchivo "$archivo" "$mensaje"
 	else
-		echo "Archivo a procesar: $archivo" #GraLog
-		cp -f "$ACEPDIR/$archivo" "$PROCDIR/proc" #MoverA
+		log_info "Archivo a procesar: ${archivo}"
+		mover_a  "${ACEPDIR}/${archivo}" "${PROCDIR}/proc"
 		procesarRegistros "$PROCDIR/proc/$archivo"
 		mostrarTotalesPorArchivo
+		log_info "Archivo ${archivo} procesado."
 	fi
 }
 
 function mostrarTotalesPorArchivo() {
-	echo "Cantidad de llamadas = ${cantidadLlamadas}: Rechazadas ${cantidadRechazadas}, Con umbral = ${cantidadConUmbral}, Sin umbral ${cantidadSinUmbral}" #GraLog
-	echo "Cantidad de llamadas sospechosas ${cantidadSospechosas}, no sospechosas ${cantidadNoSospechosas}" #GraLog
+	log_info "Cantidad de llamadas = ${cantidadLlamadas}: Rechazadas ${cantidadRechazadas}, Con umbral = ${cantidadConUmbral}, Sin umbral ${cantidadSinUmbral}"
+	log_info "Cantidad de llamadas sospechosas ${cantidadSospechosas}, no sospechosas ${cantidadNoSospechosas}"
 }
 
 function rechazarArchivo() {
@@ -60,8 +80,8 @@ function rechazarArchivo() {
 
 	let archivosRechazados++
 	
-	echo $mensaje #GraLog
-	cp -f "$ACEPDIR/$archivo" "$RECHDIR" #MoverA
+	log_error "$mensaje"
+	mover_a "${ACEPDIR}/${archivo}" "$RECHDIR"
 }
 
 function procesarRegistros() {
@@ -168,6 +188,7 @@ function rechazarRegistro() {
 	local archivoRechazadas="$RECHDIR/llamadas/${codigoCentral}.rech"
 	
 	echo "$registroRechazadas" >> "$archivoRechazadas"
+	log_info "Se ha rechazado un registro del archivo '${archivo}' por el siguiente motivo: '${motivo}'"
 
 	let cantidadRechazadas++
 }
@@ -470,23 +491,23 @@ function areaValida() {
 }
 
 function mostrarTotalesPorProceso() {
-	echo "Cantidad de archivos procesados: $archivosProcesados" #GraLog
-	echo "Cantidad de archivos rechazados: $archivosRechazados" #GraLog
+	log_info "Cantidad de archivos procesados: $archivosProcesados"
+	log_info "Cantidad de archivos rechazados: $archivosRechazados"
 }
 
 function main() {
 
-	echo 'Inicio de AFRAUMBR' #GraLog
+	log_info 'Inicio de AFRAUMBR'
 
 	cantidadArchivosLlamadas=$(archivosLlamadas | wc -l)
-	echo "Cantidad de archivos a procesar: $cantidadArchivosLlamadas" #GraLog
+	log_info "Cantidad de archivos a procesar: $cantidadArchivosLlamadas"
 
 	for archivo in $(archivosLlamadas); do
 		procesarArchivo "$archivo"
 	done
 	
 	mostrarTotalesPorProceso
-	echo "Fin de AFRAUMBR" #GraLog
+	log_info "Fin de AFRAUMBR"
 }
 
 main
