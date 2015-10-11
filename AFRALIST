@@ -615,11 +615,15 @@ sub ranking_oficinas {
 # Resuelve el ranking de llamadas sospechosas por agente
 # =============================================================================
 sub ranking_agentes {
+  my ($archivos) = @_;
+  &clear;
+  say "*****************************************";
   say "Ranking de llamadas sospechosas por agente";
+  say "*****************************************";
 
   %agentes = ();
   my @agentes_disponibles;
-  print("$ENV{'MAEDIR'}/agentes.mae\n");
+  #print("$ENV{'MAEDIR'}/agentes.mae\n");
   open(my $fh, "<", "$ENV{'MAEDIR'}/agentes.mae") or die "No se pudo abrir el archivo: $!\n";
   while(<$fh>) { chomp; 
     $_ =~ /^([^;]*);[^;]*;[^;]*;([^;]*);([^;]*)$/ || next; 
@@ -631,22 +635,15 @@ sub ranking_agentes {
   my %hashCantidades;
   my $cantidad;
   for ($i = 0; $i<= $#agentes_disponibles; $i++) {
-  
-    if (opendir(DIRH,$ENV{'PROCDIR'})) {
-      @flist=readdir(DIRH);
-      closedir(DIRH);
-    }
-    foreach (@flist) {
-      # ignorar . y .. :
-      next if ($_ eq "." || $_ eq "..");
+    foreach (@archivos) {
       if ( ! -x "$ENV{'PROCDIR'}/$_" ) {
-        $agente=$agentes_disponibles[$i];
-        $cantidad=`grep "^[^;]*;$agente;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*\$" "$ENV{'PROCDIR'}/$_" | wc -l`;
+        $agente = $agentes_disponibles[$i];
+        $cantidad = `grep "^[^;]*;$agente;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*\$" "$ENV{'PROCDIR'}/$_" | wc -l`;
         chomp($cantidad);
         if ($hashCantidades{$agente}) {
-	  $hashCantidades{$agente}=$hashCantidades{$agente}+$cantidad;
+          $hashCantidades{$agente} = $hashCantidades{$agente}+$cantidad;
         } else {
-	  $hashCantidades{$agente}=$cantidad;
+          $hashCantidades{$agente} = $cantidad;
         }
       }
     }
@@ -809,11 +806,7 @@ sub resolver_estadistica {
     }
 
   }
-  
-  # En los casos de central, oficina y agente el ranking puede ser por cantidad de segundos (acumular
-  # los tiempos de conversación) o por cantidad de llamadas. Solicitar al usuario que quiere ver: ranking
-  # de tiempo, ranking de cantidad o ambos
-  
+    
   # Si se indicó -w (grabar) grabar el resultado
 
   &clear;
