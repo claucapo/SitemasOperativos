@@ -546,17 +546,65 @@ sub resolver_estadistica {
   
   # Cuál es la central con mayor cantidad de llamadas sospechosas? // Cual es el ranking de centrales?
   #   Mostrar además del código, la descripción de la central
+  say "Ranking de llamadas sospechosas por central";
+  say "<CodCentral>: <cantidad>";
   
+  my @centrales_disponibles;
+  open(my $fh, "<", "$ENV{'MAEDIR'}/CdC.mae") or die "No se pudo abrir el archivo: $!\n";
+  while(<$fh>) { chomp; 
+    $_ =~ /(.*);.*/ || next; 
+    push(@centrales_disponibles, $1); } 
+  close $fh;
+
+  my %table;
+  my $cantidad;
+  
+  for ($i = 0; $i<= $#centrales_disponibles; $i++) {
+
+    if (opendir(DIRH,$ENV{'PROCDIR'})) {
+      @flist=readdir(DIRH);
+      closedir(DIRH);
+    }
+
+    foreach (@flist) {
+      # ignorar . y .. :
+      next if ($_ eq "." || $_ eq "..");
+      if ( ! -x "$ENV{'PROCDIR'}/$_" ) {
+    $central=$centrales_disponibles[$i];
+    $cantidad=`grep "^$central;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*\$" "$ENV{'PROCDIR'}/$_" | wc -l`;
+    chomp($cantidad);
+    $table{$central}=$cantidad;
+      }
+    }
+  }    
+
+  @valores = values(%table);
+  @sorted_valores = sort(@valores);
+  $ultimo_valor = $sorted_valores[$#sorted_valores];
+  @claves = keys(%table);
+
+  foreach my $clave(@claves) {
+  $valor_actual = $table{$clave};
+    if ($valor_actual eq $ultimo_valor) {
+      print "$clave: ";
+      print "$valor_actual\n";
+    }
+  }
+
   # Cuál es la oficina con mayor cantidad de llamadas sospechosas? // Cual es el ranking de oficinas?
+  say "Ranking de llamadas sospechosas por oficina";
   
   # Cuál es el agente con mayor cantidad de llamadas sospechosas? // Cual es el ranking de agentes?
   #   Mostar además del id del agente, el correo electrónico y la oficina a la que pertenece
+  say "Ranking de llamadas sospechosas por agente";
   
   # Cuál es el destino con mayor cantidad de llamadas sospechosas? // Cual es el ranking de destinos?
   #   Mostrar además del código, el nombre del país o el nombre de la ciudad –provincia según corresponda
+  say "Ranking de llamadas sospechosas por destino";
   
   # Cuál es el ranking de umbrales?
   #   Para este ranking no evaluar los umbrales con una sola llamada sospechosa.
+  say "Ranking de llamadas sospechosas por umbrales";
 
   # El filtro es el periodo aniollamadamesllamada (un periodo, un rango de periodos, todos los periodos)
   
@@ -572,5 +620,12 @@ sub resolver_estadistica {
 # *****************************************************************************
 # MAIN 
 # *****************************************************************************
+
+# HARCODE DE VARIABLES DE ENTORNO
+$ENV{'BINDIR'} = "./bin";
+$ENV{'PROCDIR'} = "./sospechosas";
+$ENV{'REPODIR'} = "./reportes";
+$ENV{'MAEDIR'} = ".";
+
 verificar_entorno;
 verificar_parametros;
