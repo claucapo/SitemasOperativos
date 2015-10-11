@@ -540,23 +540,23 @@ sub resolver_consulta {
 sub ranking_centrales {
   say "Ranking de llamadas sospechosas por central";
   
+  %centrales = ();
   my @centrales_disponibles;
   open(my $fh, "<", "$ENV{'MAEDIR'}/CdC.mae") or die "No se pudo abrir el archivo: $!\n";
   while(<$fh>) { chomp; 
-    $_ =~ /(.*);.*/ || next; 
-    push(@centrales_disponibles, $1); } 
+    $_ =~ /(.*);(.*)/ || next; 
+    push(@centrales_disponibles, $1);
+    $centrales{$1} = $2;
+  } 
   close $fh;
 
   my %table;
   my $cantidad;
-  
   for ($i = 0; $i<= $#centrales_disponibles; $i++) {
-
     if (opendir(DIRH,$ENV{'PROCDIR'})) {
       @flist=readdir(DIRH);
       closedir(DIRH);
     }
-
     foreach (@flist) {
       # ignorar . y .. :
       next if ($_ eq "." || $_ eq "..");
@@ -570,7 +570,7 @@ sub ranking_centrales {
   }    
 
   foreach my $llave (sort {$table{$b} <=> $table{$a}} keys %table) {
-    print("$llave "); print("$table{$llave}\n");
+    print("$llave "); print("$table{$llave}"); print("\t($centrales{$llave})\n");
   }
 } # Fin: ranking_centrales
 
