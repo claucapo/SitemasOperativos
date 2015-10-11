@@ -123,76 +123,83 @@ sub uniq {
 # =============================================================================
 sub procesar_archivos {
   my ($archivos,$centrales,$agentes,$umbrales,$tipos,$numeros,$desde,$hasta) = @_;
-  say "Archivos seleccionados: @$archivos";
-  say "Filtros";
+  #say "Archivos seleccionados: @$archivos";
+  #say "Filtros";
   if (scalar @$centrales > 0) {
     $central = join("|", @$centrales);
   } else {
     $central = '.*';
   }
-  say "Central: $central";
+  #say "Central: $central";
   if (scalar @$agentes > 0) {
     $agente = join("|", @$agentes);
   } else {
     $agente = '.*';
   }
-  say "Agente: $agente";
+  #say "Agente: $agente";
   if (scalar @$umbrales > 0) {
     $umbral = join("|", @$umbrales);
   } else {
     $umbral = '.*';
   }
-  say "Umbral: $umbral";
+  #say "Umbral: $umbral";
   if (scalar @$tipos > 0) {
     $tipo = join("|", @$tipos);
   } else {
     $tipo = '.*';
   }
-  say "Tipo: $tipo";
+  #say "Tipo: $tipo";
   if (scalar @$numeros > 0) {
     $numero = join("|", @$numeros);
   } else {
     $numero = '.*';
   }
-  say "Numero: $numero";
+  #say "Numero: $numero";
   # Recorro los archivos seleccionados
   foreach (@$archivos) {
     $archivo = $_;
     say "Procesando archivo: $archivo";
     open($fh, "<", "$ENV{'PROCDIR'}/$archivo") or open($fh, "<", "$ENV{'REPODIR'}/$archivo") or die "No se pudo abrir el archivo $ENV{'PROCDIR'} $ENV{'REPODIR'} $archivo: $!\n";
-    say "Path: $ENV{'PROCDIR'}/$archivo";
-    say "File Handler: $fh";
+    #say "Path: $ENV{'PROCDIR'}/$archivo";
+    #say "File Handler: $fh";
     while(<$fh>) {
       chomp;
       $match = 0;
       say "Registro: $_";
       if ($_ =~ /($central);.*;.*;.*;.*;.*;.*;.*;.*;.*;.*;.*/) {
-        say $_; say "match central "; 
+        #say $_; say "match central "; 
+        print "central-ok ";
         $match++;
       } 
       if ($_ =~ /.*;($agente);.*;.*;.*;.*;.*;.*;.*;.*;.*;.*/) {
-        say $_; say "match agente "; 
+        #say $_; say "match agente "; 
+        print "agente-ok ";
         $match++;
       }
       if ($_ =~ /.*;.*;($umbral);.*;.*;.*;.*;.*;.*;.*;.*;.*/) {
-        say $_; say "match umbral "; 
+        #say $_; say "match umbral "; 
+        print "umbral-ok ";
         $match++;
       }
       if ($_ =~ /.*;.*;.*;($tipo);.*;.*;.*;.*;.*;.*;.*;.*/) {
-        say $_; say "match tipo "; 
+        #say $_; say "match tipo "; 
+        print "tipo-ok ";
         $match++;
       }
       if ($_ =~ /.*;.*;.*;.*;.*;.*;($numero);.*;.*;.*;.*/) {
-        say $_; say "match numero "; 
+        #say $_; say "match numero "; 
+        print "numero-ok ";
         $match++;
       }
       if ($desde and $hasta) {
         if ($_ =~ /.*;.*;.*;.*;.*;(.*);.*;.*;.*;.*;.*;.*/ and $1 > $desde and $1 < $hasta) {
-          say $_; say "match rango tiempo "; 
+          #say $_; say "match rango tiempo "; 
+          print "rango-ok ";
           $match++;
         }
       } else { 
-        say $_; say "match rango tiempo "; 
+        #say $_; say "match rango tiempo "; 
+        print "rango-ok ";
         $match++;
       }
       if ($match >= 6) {
@@ -287,6 +294,8 @@ sub resolver_consulta {
         @arch_prev_disponibles = map m|([^/]+)$|, @arch_prev_disponibles;
         push(@arch_disponibles, @arch_sosp_disponibles);
         push(@arch_disponibles, @arch_prev_disponibles);
+        # Quitamos el subdirectorio
+        @arch_disponibles = grep(!/^proc$/, @arch_disponibles);
         &clear;
         say "*****************************************";
         say "MENU : Seleccionar Archivos";
