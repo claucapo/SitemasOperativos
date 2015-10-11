@@ -4,7 +4,7 @@ MAESTRO_PAISES="$MAEDIR/CdP.mae"
 MAESTRO_AREAS="$MAEDIR/CdA.mae"
 MAESTRO_CENTRALES="$MAEDIR/CdC.mae"
 MAESTRO_AGENTES="$MAEDIR/agentes.mae"
-MAESTRO_UMBRALES="$MAEDIR/umbrales.tab"
+MAESTRO_UMBRALES="$MAEDIR/umbral.tab"
 
 cantidadLlamadas=0
 cantidadRechazadas=0
