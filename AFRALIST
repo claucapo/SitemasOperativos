@@ -616,7 +616,7 @@ sub resolver_estadistica {
     &clear;
     say "*****************************************";
     say "MENU : Principal - Estadisticas";
-    say "1 - Seleccionar Filtro Periodo aniollamada-mesllamada ()";
+    say "1 - Seleccionar Filtro Periodo AñoMes (Todos)";
     say "2 - Ranking de llamadas sospechosas por central";
     say "3 - Ranking de llamadas sospechosas por oficina";
     say "4 - Ranking de llamadas sospechosas por agente";
@@ -624,7 +624,7 @@ sub resolver_estadistica {
     say "6 - Ranking de llamadas sospechosas por umbrales";
     say "7 - Salir";
     say "*****************************************";
-    #say "Seleccione opcion y presione enter.";
+    say "Seleccione opcion y presione enter.";
     $op0 = <STDIN>;
     if ($op0 == 1) {
       # Seleccionar los filtros
