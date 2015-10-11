@@ -24,6 +24,36 @@ Para instalar y ejecutar AFRA-I desde un pen-drive booteable con el sistema oper
 
 
 
+AFRALIST
+Puede consultar las llamas sospechosas utilizando el programa AFRALIST del directorio de binarios
+Si lo que desea es filtrar las llamadas sospechosas utilize el parametro -r
+Si en cambio quiere consultar estadisticas, ejecutelo con el parametro -s
+En ambos casos puede argregar el parametro -w para que los resultados de sus consultas o estadisticas sean grabados en archivo.
+
+Ejemplo, en el directorio de binarios: $ ./AFRALIST -r
+a. Aparece un menu con opciones, utilize la opcion 1 para seleccionar los archivos a consultar.
+   Se muestran los archivos disponibles del directorio de llamadas sospechosas y del directorio de reportes. Tipee el nombre del archivo y presione enter para seleccionarlo, repita para seleccionar mas archivos, o bien use las opciones T para terminar la seleccion, o B para borrar las opciones seleccionadas.
+b. Utilize la opcion 2 para seleccionar los filtros que se aplicaran sobre los archivos consultados.
+   Aparece otro menu para seleccionar el tipo de filtro a aplicar.
+   1. Filtrar por central, se muestran las centrales disponibles, tipee el nombre de la central y presione enter para seleccionarla, repita para seleccionar mas centrales, o bien use las opciones T para terminar la seleccion, o B para borrar las opciones seleccionadas.
+   2. Filtrar por agente, se muestran los agentes disponibles, tipee el nombre del agente y presione enter para seleccionarlo, repita para seleccionar mas agentes, o bien use las opciones T para terminar la seleccion, o B para borrar las opciones seleccionadas.
+   3. Filtrar por umbral,  se muestran los umbrales posibles, tipee el numero de umbral y presione enter para seleccionarlo, repita para seleccionar mas umbrales, o bien use las opciones T para terminar la seleccion, o B para borrar las opciones seleccionadas.
+   4. Filtrar por tipo de llamada,  se muestran los tipos de llamadas poisbles, tipee el tipo y presione enter para seleccionarlo, repita para seleccionar mas tipos de llamada, o bien use las opciones T para terminar la seleccion, o B para borrar las opciones seleccionadas.
+   5. Filtrar por tiempo de conversacion, ingrese un valor numerico 'desde' y presione enter, luego ingrese un valor numerico 'hasta' y presione enter.
+   6. Filtrar por Numero A, tipee el numero a filtrar con el siguiente formato <area>;<numero> y presione enter para seleccionarlo, repita para seleccionar mas numeros, o bien use las opciones T para terminar la seleccion, o B para borrar las opciones seleccionadas.
+   7. Volver al menu principal, una vez que ya definio los filtros que desea aplicar, utilize esta opcion para volver al menu principal.
+c. Utilize la opcion 3 para procesar los archivos seleccionados con los filtros que se configuraron. 
+   En este caso se mostrara el reporte en pantalla (para que los reporte se graben en archivo debe iniciar el programa con parametro -w ej. $ ./AFRALIST -r -w)
+d. Presione enter para modificar las selecciones anteriores y volver a gener otro reporte.
+e. Desde el menu principal utilize la opcion 4 para finaliar el programa.
+
+
+
+
+
+
+
+
 a) Una explicación de cómo arrancar el SO desde puerto USB 
 
 b) Una explicación de cómo loguearse 

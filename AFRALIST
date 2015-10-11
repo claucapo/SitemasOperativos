@@ -25,10 +25,9 @@ DESCRIPTION
 OPTIONS
      -r   Consulta
 
-     -s config-file
-          Estadistica
+     -s   Estadistica
 
-     -w   Grabar
+     -w   Grabar resultados en archivo
 
      -h   Ayuda
 
@@ -41,18 +40,9 @@ ENVIRONMENT
      BINDIR
           If non-null the full pathname for an  alternate  system
           wide foo.conf.
-
-DIAGNOSTICS
-     The following diagnostics may be issued on stderr:
-
-     Bad magic number.
-          The input file does not look like an archive file.
-     Old style baz segments.
-          foo  can  only  handle  new  style  baz segments. COBOL
-          object libraries are not supported in this version.
-
-BUGS
-     El nombre del comando no refleja su proposito.
+     PROCDIR
+     REPODIR
+     MAEDIR
 
 AUTHOR
      Claudio Anibal Smith <claucapo@gmail.com>
@@ -132,72 +122,94 @@ sub uniq {
 # Procesa los archivos seleccionados y aplica los filtros
 # =============================================================================
 sub procesar_archivos {
-  my ($archivos,$centrales,$agentes,$tipos,$numeros,$desde,$hasta) = @_;
-  say @$archivos;
-  say "Filtros";
+  my ($archivos,$centrales,$agentes,$umbrales,$tipos,$numeros,$desde,$hasta) = @_;
+  #say "Archivos seleccionados: @$archivos";
+  #say "Filtros";
   if (scalar @$centrales > 0) {
     $central = join("|", @$centrales);
   } else {
     $central = '.*';
   }
-  say "Central: $central";
+  #say "Central: $central";
   if (scalar @$agentes > 0) {
     $agente = join("|", @$agentes);
   } else {
     $agente = '.*';
   }
-  say "Agente: $agente";
+  #say "Agente: $agente";
+  if (scalar @$umbrales > 0) {
+    $umbral = join("|", @$umbrales);
+  } else {
+    $umbral = '.*';
+  }
+  #say "Umbral: $umbral";
   if (scalar @$tipos > 0) {
     $tipo = join("|", @$tipos);
   } else {
     $tipo = '.*';
   }
-  say "Tipo: $tipo";
+  #say "Tipo: $tipo";
   if (scalar @$numeros > 0) {
     $numero = join("|", @$numeros);
   } else {
     $numero = '.*';
   }
-  say "Numero: $numero";
+  #say "Numero: $numero";
   # Recorro los archivos seleccionados
   foreach (@$archivos) {
     $archivo = $_;
-    open(my $fh, "<", "$ENV{'PROCDIR'}/$archivo") or open(my $fh, "<", "$ENV{'REPODIR'}/$archivo") or die "No se pudo abrir el archivo: $!\n";
+    say "Procesando archivo: $archivo";
+    open($fh, "<", "$ENV{'PROCDIR'}/$archivo") or open($fh, "<", "$ENV{'REPODIR'}/$archivo") or die "No se pudo abrir el archivo $ENV{'PROCDIR'} $ENV{'REPODIR'} $archivo: $!\n";
+    #say "Path: $ENV{'PROCDIR'}/$archivo";
+    #say "File Handler: $fh";
     while(<$fh>) {
       chomp;
       $match = 0;
+      say "Registro: $_";
       if ($_ =~ /($central);.*;.*;.*;.*;.*;.*;.*;.*;.*;.*;.*/) {
-        say $_; say "match central "; 
+        #say $_; say "match central "; 
+        print "central-ok ";
         $match++;
       } 
       if ($_ =~ /.*;($agente);.*;.*;.*;.*;.*;.*;.*;.*;.*;.*/) {
-        say $_; say "match agente "; 
+        #say $_; say "match agente "; 
+        print "agente-ok ";
+        $match++;
+      }
+      if ($_ =~ /.*;.*;($umbral);.*;.*;.*;.*;.*;.*;.*;.*;.*/) {
+        #say $_; say "match umbral "; 
+        print "umbral-ok ";
         $match++;
       }
       if ($_ =~ /.*;.*;.*;($tipo);.*;.*;.*;.*;.*;.*;.*;.*/) {
-        say $_; say "match tipo "; 
+        #say $_; say "match tipo "; 
+        print "tipo-ok ";
         $match++;
       }
-      if ($_ =~ /.*;.*;.*;.*;.*;.*;.*;($numero);.*;.*;.*;.*/) {
-        say $_; say "match numero "; 
+      if ($_ =~ /.*;.*;.*;.*;.*;.*;($numero);.*;.*;.*;.*/) {
+        #say $_; say "match numero "; 
+        print "numero-ok ";
         $match++;
       }
       if ($desde and $hasta) {
         if ($_ =~ /.*;.*;.*;.*;.*;(.*);.*;.*;.*;.*;.*;.*/ and $1 > $desde and $1 < $hasta) {
-          say $_; say "match rango tiempo "; 
+          #say $_; say "match rango tiempo "; 
+          print "rango-ok ";
           $match++;
         }
       } else { 
-        say $_; say "match rango tiempo "; 
+        #say $_; say "match rango tiempo "; 
+        print "rango-ok ";
         $match++;
       }
-      if ($match >= 5) {
+      if ($match >= 6) {
         push(@resultados, $_);
       }
       
     }
     close $fh;
   }
+  $fh = '';
  
   #DEBUG
   #say "Resultados:"; 
@@ -213,18 +225,7 @@ sub procesar_archivos {
 sub resolver_consulta {
   my $grabar = $_[0];
 
-  # Debe ingresar todos los archivos sobre los cuales va a consultar
-  # puede ser sobre los archivos de llamadas sospechosas <oficina>_<aniomes> o tambien sobre consultas previas subllamadas.xxx
-  # Proponerle filtrar archivos por oficina: ingrese oficina: _____ y por aniomes: ingrese año mes: _____  (uno, varios, todos)
-  # Proponerle filtrar archivos de subllamadas (uno, varias, todas)
-
-  # SELECCION DE ARCHIVOS
-  my @arch_sosp_disponibles = glob "$ENV{'PROCDIR'}/*";
-  @arch_sosp_disponibles = map m|([^/]+)$|, @arch_sosp_disponibles;
-  my @arch_prev_disponibles = glob "$ENV{'REPODIR'}/*";
-  @arch_prev_disponibles = map m|([^/]+)$|, @arch_prev_disponibles;
-  push(@arch_disponibles, @arch_sosp_disponibles);
-  push(@arch_disponibles, @arch_prev_disponibles);
+  # # SELECCION DE ARCHIVOS
   my @arch_seleccionados;
 
   # SELECCION DE CENTRALES
@@ -269,7 +270,7 @@ sub resolver_consulta {
     $cant_filtros++ if scalar(@numeros_seleccionados) > 0;
     &clear;
     say "*****************************************";
-    say "MENU : Principal";
+    say "MENU : Principal Filtros";
     say "1 - Seleccionar Archivos ($cant_seleccionados archivos)";
     say "2 - Seleccionar Filtros ($cant_filtros filtros)";
     if ($grabar) { 
@@ -285,6 +286,16 @@ sub resolver_consulta {
       # Selecciona archivos
       $filtro = '';
       while ($filtro ne 'T') {
+        # Ver los archivos disponibles
+        @arch_disponibles = ();
+        @arch_sosp_disponibles = glob "$ENV{'PROCDIR'}/*";
+        @arch_sosp_disponibles = map m|([^/]+)$|, @arch_sosp_disponibles;
+        @arch_prev_disponibles = glob "$ENV{'REPODIR'}/*";
+        @arch_prev_disponibles = map m|([^/]+)$|, @arch_prev_disponibles;
+        push(@arch_disponibles, @arch_sosp_disponibles);
+        push(@arch_disponibles, @arch_prev_disponibles);
+        # Quitamos el subdirectorio
+        @arch_disponibles = grep(!/^proc$/, @arch_disponibles);
         &clear;
         say "*****************************************";
         say "MENU : Seleccionar Archivos";
@@ -392,7 +403,7 @@ sub resolver_consulta {
             } elsif ($filtro eq "B") {
               @umbrales_seleccionados = (); # Borrar toda la seleccion
             } else {
-              push(@umbrales_seleccionados, grep(/^$filtro/, @umbrales_disponibles));
+              push(@umbrales_seleccionados, grep(/^$filtro$/, @umbrales_disponibles));
               @umbrales_seleccionados = uniq(@umbrales_seleccionados);
             }
           }
@@ -465,15 +476,38 @@ sub resolver_consulta {
         say "*****************************************";
         say "Procesando $cant_seleccionados archivos con $cant_filtros filtros";
         sleep 2;
-        @resultados = procesar_archivos(\@arch_seleccionados, \@centrales_seleccionadas, \@agentes_seleccionados, \@tipos_seleccionados, \@numeros_seleccionados, $desde_conversacion, $hasta_conversacion);
+        @archivos = @arch_seleccionados;
+        @centrales = @centrales_seleccionadas;
+        @agentes = @agentes_seleccionados;
+        @umbrales = @umbrales_seleccionados;
+        @tipos = @tipos_seleccionados;
+        @numeros = @numeros_seleccionados;
+        @resultados = procesar_archivos(\@archivos, \@centrales, \@agentes, \@umbrales, \@tipos, \@numeros, $desde_conversacion, $hasta_conversacion);
         if ($grabar) {      
+          # Definir nombre de archivo de salida
+          @reportes_existentes = glob "$ENV{'REPODIR'}/*";
+          @reportes_existentes = map(/subllamada\.(...)$/, @reportes_existentes);
+          @reportes_existentes = sort @reportes_existentes;
+          $ultimo = @reportes_existentes[-1];
+          $siguiente = "000";
+          $cant = scalar @reportes_existentes;
+          if ($cant > 0) {
+            $siguiente = $ultimo + 1;
+          }
+          $extension = sprintf("%03d", $siguiente);
+          $salida = "subllamada.$extension";
           &clear;
           say "*****************************************";
           say "Generando reporte en archivo";
-          say "Nombre de archivo: ";
-          say "Cantidad de registros: ";
+          say "Nombre de archivo: $salida";
+          print "Cantidad de registros: "; say scalar @resultados;
           say "*****************************************";
-          exit 0;
+          # Grabar en archivo
+          open($fhs, ">", "$ENV{'REPODIR'}/$salida") or die "Error: No se puede abrir el archivo de salida: $!"; 
+          foreach (@resultados) {
+            print $fhs "$_\n";
+          }
+          close $fhs;
           print "Presione enter para volver al menu principal. "; <STDIN>
         } else {
           &clear;
@@ -483,7 +517,6 @@ sub resolver_consulta {
           say "*****************************************";
           print "$_\n" for sort @resultados;
           say "*****************************************";
-          exit 0;
           print "Presione enter para volver al menu principal. "; <STDIN>
         }
       } else {
@@ -505,25 +538,87 @@ sub resolver_consulta {
 # Resuelve estadisticas sobre los archivos de llamadas sospechosas
 # =============================================================================
 sub resolver_estadistica {
-
-  say "resolver_estadistica";
   my $grabar = $_[0];
+
+  &clear;
+  say "*****************************************";
+  say "MENU : Principal Estadisticas";
+  say "1 - Seleccionar Filtro Periodo aniollamada-mesllamada ()";
+  say "2 - Ranking de llamadas sospechosas por central";
+  say "3 - Ranking de llamadas sospechosas por oficina";
+  say "4 - Ranking de llamadas sospechosas por agente";
+  say "5 - Ranking de llamadas sospechosas por destino";
+  say "6 - Ranking de llamadas sospechosas por umbrales";
+  say "7 - Salir";
+  say "*****************************************";
+  #say "Seleccione opcion y presione enter.";
 
   # Las estadísticas deben permitir responder preguntas tales como:
   
   # Cuál es la central con mayor cantidad de llamadas sospechosas? // Cual es el ranking de centrales?
   #   Mostrar además del código, la descripción de la central
+  say "Ranking de llamadas sospechosas por central";
   
+  my @centrales_disponibles;
+  open(my $fh, "<", "$ENV{'MAEDIR'}/CdC.mae") or die "No se pudo abrir el archivo: $!\n";
+  while(<$fh>) { chomp; 
+    $_ =~ /(.*);.*/ || next; 
+    push(@centrales_disponibles, $1); } 
+  close $fh;
+
+  my %table;
+  my $cantidad;
+  
+  for ($i = 0; $i<= $#centrales_disponibles; $i++) {
+
+    if (opendir(DIRH,$ENV{'PROCDIR'})) {
+      @flist=readdir(DIRH);
+      closedir(DIRH);
+    }
+
+    foreach (@flist) {
+      # ignorar . y .. :
+      next if ($_ eq "." || $_ eq "..");
+      if ( ! -x "$ENV{'PROCDIR'}/$_" ) {
+        $central=$centrales_disponibles[$i];
+        $cantidad=`grep "^$central;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*\$" "$ENV{'PROCDIR'}/$_" | wc -l`;
+        chomp($cantidad);
+        $table{$central}=$cantidad;
+      }
+    }
+  }    
+
+  foreach my $llave (sort {$table{$b} <=> $table{$a}} keys %table) {
+    print("$llave "); print("$table{$llave}\n");
+  }
+
+  # @valores = values(%table);
+  # @sorted_valores = sort(@valores);
+  # $ultimo_valor = $sorted_valores[$#sorted_valores];
+  # @claves = keys(%table);
+
+  # foreach my $clave(@claves) {
+  # $valor_actual = $table{$clave};
+  #   if ($valor_actual eq $ultimo_valor) {
+  #     print "$clave: ";
+  #     print "$valor_actual\n";
+  #   }
+  # }
+
   # Cuál es la oficina con mayor cantidad de llamadas sospechosas? // Cual es el ranking de oficinas?
+  say "Ranking de llamadas sospechosas por oficina";
   
   # Cuál es el agente con mayor cantidad de llamadas sospechosas? // Cual es el ranking de agentes?
   #   Mostar además del id del agente, el correo electrónico y la oficina a la que pertenece
+  say "Ranking de llamadas sospechosas por agente";
   
   # Cuál es el destino con mayor cantidad de llamadas sospechosas? // Cual es el ranking de destinos?
   #   Mostrar además del código, el nombre del país o el nombre de la ciudad –provincia según corresponda
+  say "Ranking de llamadas sospechosas por destino";
   
   # Cuál es el ranking de umbrales?
   #   Para este ranking no evaluar los umbrales con una sola llamada sospechosa.
+  say "Ranking de llamadas sospechosas por umbrales";
 
   # El filtro es el periodo aniollamadamesllamada (un periodo, un rango de periodos, todos los periodos)
   
@@ -539,5 +634,12 @@ sub resolver_estadistica {
 # *****************************************************************************
 # MAIN 
 # *****************************************************************************
+
+# HARCODE DE VARIABLES DE ENTORNO
+$ENV{'BINDIR'} = "./bin";
+$ENV{'PROCDIR'} = "./sospechosas";
+$ENV{'REPODIR'} = "./reportes";
+$ENV{'MAEDIR'} = ".";
+
 verificar_entorno;
 verificar_parametros;
