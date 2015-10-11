@@ -25,10 +25,9 @@ DESCRIPTION
 OPTIONS
      -r   Consulta
 
-     -s config-file
-          Estadistica
+     -s   Estadistica
 
-     -w   Grabar
+     -w   Grabar resultados en archivo
 
      -h   Ayuda
 
@@ -41,18 +40,9 @@ ENVIRONMENT
      BINDIR
           If non-null the full pathname for an  alternate  system
           wide foo.conf.
-
-DIAGNOSTICS
-     The following diagnostics may be issued on stderr:
-
-     Bad magic number.
-          The input file does not look like an archive file.
-     Old style baz segments.
-          foo  can  only  handle  new  style  baz segments. COBOL
-          object libraries are not supported in this version.
-
-BUGS
-     El nombre del comando no refleja su proposito.
+     PROCDIR
+     REPODIR
+     MAEDIR
 
 AUTHOR
      Claudio Anibal Smith <claucapo@gmail.com>
@@ -228,18 +218,7 @@ sub procesar_archivos {
 sub resolver_consulta {
   my $grabar = $_[0];
 
-  # Debe ingresar todos los archivos sobre los cuales va a consultar
-  # puede ser sobre los archivos de llamadas sospechosas <oficina>_<aniomes> o tambien sobre consultas previas subllamadas.xxx
-  # Proponerle filtrar archivos por oficina: ingrese oficina: _____ y por aniomes: ingrese año mes: _____  (uno, varios, todos)
-  # Proponerle filtrar archivos de subllamadas (uno, varias, todas)
-
-  # SELECCION DE ARCHIVOS
-  my @arch_sosp_disponibles = glob "$ENV{'PROCDIR'}/*";
-  @arch_sosp_disponibles = map m|([^/]+)$|, @arch_sosp_disponibles;
-  my @arch_prev_disponibles = glob "$ENV{'REPODIR'}/*";
-  @arch_prev_disponibles = map m|([^/]+)$|, @arch_prev_disponibles;
-  push(@arch_disponibles, @arch_sosp_disponibles);
-  push(@arch_disponibles, @arch_prev_disponibles);
+  # # SELECCION DE ARCHIVOS
   my @arch_seleccionados;
 
   # SELECCION DE CENTRALES
@@ -300,6 +279,14 @@ sub resolver_consulta {
       # Selecciona archivos
       $filtro = '';
       while ($filtro ne 'T') {
+        # Ver los archivos disponibles
+        @arch_disponibles = ();
+        @arch_sosp_disponibles = glob "$ENV{'PROCDIR'}/*";
+        @arch_sosp_disponibles = map m|([^/]+)$|, @arch_sosp_disponibles;
+        @arch_prev_disponibles = glob "$ENV{'REPODIR'}/*";
+        @arch_prev_disponibles = map m|([^/]+)$|, @arch_prev_disponibles;
+        push(@arch_disponibles, @arch_sosp_disponibles);
+        push(@arch_disponibles, @arch_prev_disponibles);
         &clear;
         say "*****************************************";
         say "MENU : Seleccionar Archivos";
@@ -488,13 +475,30 @@ sub resolver_consulta {
         @numeros = @numeros_seleccionados;
         @resultados = procesar_archivos(\@archivos, \@centrales, \@agentes, \@umbrales, \@tipos, \@numeros, $desde_conversacion, $hasta_conversacion);
         if ($grabar) {      
+          # Definir nombre de archivo de salida
+          @reportes_existentes = glob "$ENV{'REPODIR'}/*";
+          @reportes_existentes = map(/subllamada\.(...)$/, @reportes_existentes);
+          @reportes_existentes = sort @reportes_existentes;
+          $ultimo = @reportes_existentes[-1];
+          $siguiente = "000";
+          $cant = scalar @reportes_existentes;
+          if ($cant > 0) {
+            $siguiente = $ultimo + 1;
+          }
+          $extension = sprintf("%03d", $siguiente);
+          $salida = "subllamada.$extension";
           &clear;
           say "*****************************************";
           say "Generando reporte en archivo";
-          say "Nombre de archivo: ";
-          say "Cantidad de registros: ";
+          say "Nombre de archivo: $salida";
+          print "Cantidad de registros: "; say scalar @resultados;
           say "*****************************************";
-          exit 0;
+          # Grabar en archivo
+          open($fhs, ">", "$ENV{'REPODIR'}/$salida") or die "Error: No se puede abrir el archivo de salida: $!"; 
+          foreach (@resultados) {
+            print $fhs "$_\n";
+          }
+          close $fhs;
           print "Presione enter para volver al menu principal. "; <STDIN>
         } else {
           &clear;
