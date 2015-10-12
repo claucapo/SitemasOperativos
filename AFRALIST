@@ -582,7 +582,10 @@ sub resolver_consulta {
 # Resuelve estadisticas 
 # =============================================================================
 sub ranking_centrales {
+  #my ($archivos, $bandera) = @_;
   my ($archivos) = @_;
+  $bandera=0;
+  
   &clear;
   say "*****************************************";
   say "Ranking de llamadas sospechosas por central";
@@ -599,27 +602,57 @@ sub ranking_centrales {
   close $fh;
 
   my %table;
+  my %tiempos;
   my $cantidad;
+  my $tiempo;
+  
   for ($i = 0; $i<= $#centrales_disponibles; $i++) {
-    foreach (@archivos) {
-      if ( ! -x "$ENV{'PROCDIR'}/$_" ) {
+    foreach $archivo (@archivos) {
+      if ( ! -x "$ENV{'PROCDIR'}/$archivo" ) {
         $central = $centrales_disponibles[$i];
-        $cantidad = `grep "^$central;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*\$" "$ENV{'PROCDIR'}/$_" | wc -l`;
+                
+	my @listaTiempos;
+	open(my $fh, "<", "$ENV{'PROCDIR'}/$archivo") or die "No se pudo abrir el archivo: $!\n";
+	while(<$fh>) { chomp; 
+	  $_ =~ /^$central;[^;]*;[^;]*;[^;]*;[^;]*;([^;]*);[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*$/ || next; 
+	  push(@listaTiempos, $1);
+	} 
+	close $fh;
+	
+	my $tiempo = 0;
+	foreach $t (@listaTiempos) {
+	  $tiempo = $tiempo + $t;
+	}
+	
+        $cantidad = `grep "^$central;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*\$" "$ENV{'PROCDIR'}/$archivo" | wc -l`;
+        #$tiempo = `sed -n "s/^$central;[^;]*;[^;]*;[^;]*;[^;]*;\([^;]*\);[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*\$/\1/p" "$ENV{'PROCDIR'}/$_" | paste \-sd\+ | bc -l`;
         chomp($cantidad);
         if ($table{$central}) {
           $table{$central} = $table{$central} + $cantidad;
+          $tiempos{$central} = $tiempos{$central} + $tiempo
         } else {
           $table{$central} = $cantidad;
+	  $tiempos{$central} = $tiempo;
         }
       }
     }
   }    
 
   @resultados = ();
-  push(@resultados, "codigo_central;cant_llamadas;desc_central");
-  foreach my $llave (sort {$table{$b} <=> $table{$a}} keys %table) {
-    push(@resultados, "$llave;$table{$llave};$centrales{$llave}");
-    print("$llave "); print("$table{$llave}"); print("\t($centrales{$llave})\n");
+  push(@resultados, "codigo_central;cant_llamadas;desc_central;tiempo_llamadas");
+  
+  if ($bandera) { # ranking por cantidad de llamadas
+    foreach my $llave (sort {$table{$b} <=> $table{$a}} keys %table) {
+      push(@resultados, "$llave;$table{$llave};$centrales{$llave};$tiempos{$llave}");
+      print("1 codigo_central: $llave"); print(", cant_llamadas: $table{$llave}"); print(", desc_central: $centrales{$llave}"); print(", tiempo_llamadas: $tiempos{$llave}\n");
+      print("-------------------------------------------------\n");
+    }
+  } else { # ranking por tiempo de llamada
+    foreach my $llave (sort {$tiempos{$b} <=> $tiempos{$a}} keys %tiempos) {
+      push(@resultados, "$llave;$table{$llave};$centrales{$llave};$tiempos{$llave}");
+      print("2 codigo_central: $llave"); print(", cant_llamadas: $table{$llave}"); print(", desc_central: $centrales{$llave}"); print(", tiempo_llamadas: $tiempos{$llave}\n");
+      print("-------------------------------------------------\n");
+    }
   }
 
   return @resultados;
