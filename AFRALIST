@@ -719,17 +719,36 @@ sub ranking_destinos {
   say "Ranking de llamadas sospechosas por destino";
   say "*****************************************";
 
+  #cargamos paises
+  %paises = ();
+  open(my $fh, "<", "$ENV{'MAEDIR'}/CdP.mae") or die "No se pudo abrir el archivo: $!\n";
+  while(<$fh>) { chomp; 
+    $_ =~ /^([^;]*);([^;]*)$/ || next; 
+    $paises{$1} = $2;
+  } 
+  close $fh;
+
+  #cargamos provincias
+  %provincias = ();
+  open(my $fh, "<", "$ENV{'MAEDIR'}/CdA.mae") or die "No se pudo abrir el archivo: $!\n";
+  while(<$fh>) { chomp; 
+    $_ =~ /^([^;]*);([^;]*)$/ || next; 
+    $provincias{$2} = $1;
+  } 
+  close $fh;
+
   my %hashCantidades;
+  my %hashLugar;
   my $cantidad;
 
   @resultados = ();
-  push(@resultados, "destino;cant_llamadas");
+  push(@resultados, "destino;cant_llamadas;lugar");
 
   foreach $archivo (@archivos) {
 
     open($fh, "<", "$ENV{'PROCDIR'}/$archivo") or die "No se pudo abrir el archivo $ENV{'PROCDIR'} $archivo: $!\n";
     while(<$fh>) { chomp; 
-      $_ =~ /^[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;([^;]*);([^;]*);([^;]*);[^;]*;[^;]*$/ || next; 
+      $_ =~ /^[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;([^;]*);([^;]*);([^;]*);[^;]*$/ || next; 
       $codigoPais=$1;
       $codigoArea=$2;
       $numeroLinea=$3;
@@ -738,15 +757,21 @@ sub ranking_destinos {
       } else {
         $hashCantidades{$codigoPais.$codigoArea.$numeroLinea} = 1;
       }
+      if ($codigoPais) {
+	$hashLugar{$codigoPais.$codigoArea.$numeroLinea} = $paises{$codigoPais};
+      } else {
+	$hashLugar{$codigoPais.$codigoArea.$numeroLinea} = $provincias{$codigoArea};
+      }
     }
     close $fh;
     $fh = '';
   }
 
   foreach my $llave (sort {$hashCantidades{$b} <=> $hashCantidades{$a}} keys %hashCantidades) {
-    push(@resultados, "$llave;$hashCantidades{$llave}");
+    push(@resultados, "$llave;$hashCantidades{$llave};$hashLugar{$llave}");
     print("numero destino: $llave\n");
     print("cantidad: $hashCantidades{$llave}\n");
+    print("lugar: $hashLugar{$llave}\n");
     print("----------------------------------------------\n");
   }
 
