@@ -679,30 +679,35 @@ sub ranking_destinos {
   my %hashCantidades;
   my $cantidad;
 
+  @resultados = ();
+  push(@resultados, "destino;cant_llamadas");
+
   foreach $archivo (@archivos) {
 
     open($fh, "<", "$ENV{'PROCDIR'}/$archivo") or die "No se pudo abrir el archivo $ENV{'PROCDIR'} $archivo: $!\n";
     while(<$fh>) { chomp; 
-      $_ =~ /^[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;([^;]*);([^;]*);([^;]*);[^;]*;$/ || next; 
+      $_ =~ /^[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;([^;]*);([^;]*);([^;]*);[^;]*;[^;]*$/ || next; 
       $codigoPais=$1;
       $codigoArea=$2;
       $numeroLinea=$3;
       if ($hashCantidades{$codigoPais.$codigoArea.$numeroLinea}) {
-	$hashCantidades{$codigoPais.$codigoArea.$numeroLinea} = $hashCantidades{$codigoPais.$codigoArea.$numeroLinea} + 1;
+        $hashCantidades{$codigoPais.$codigoArea.$numeroLinea} = $hashCantidades{$codigoPais.$codigoArea.$numeroLinea} + 1;
       } else {
-	$hashCantidades{$codigoPais.$codigoArea.$numeroLinea} = 1;
+        $hashCantidades{$codigoPais.$codigoArea.$numeroLinea} = 1;
       }
     }
     close $fh;
     $fh = '';
 
     foreach my $llave (sort {$hashCantidades{$b} <=> $hashCantidades{$a}} keys %hashCantidades) {
+      push(@resultados, "$llave;$hashCantidades{$llave}");
       print("numero destino: $llave\n");
       print("cantidad: $hashCantidades{$llave}\n");
       print("----------------------------------------------\n");
     }
   }
-#
+
+  return @resultados;
 } # Fin: ranking_destinos
 
 # =============================================================================
@@ -853,12 +858,5 @@ sub resolver_estadistica {
 # *****************************************************************************
 # MAIN 
 # *****************************************************************************
-
-# HARCODE DE VARIABLES DE ENTORNO
-$ENV{'BINDIR'} = "./bin";
-$ENV{'PROCDIR'} = "./sospechosas";
-$ENV{'REPODIR'} = "./reportes";
-$ENV{'MAEDIR'} = ".";
-
 verificar_entorno;
 verificar_parametros;
