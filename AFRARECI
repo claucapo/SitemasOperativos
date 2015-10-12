@@ -90,10 +90,6 @@ function aceptar_archivo(){
 	return 0	
 }
 
-function get_pid(){
-    local ppid=`ps aux | grep "\($BINDIR\)\?/$1" | grep -v grep | awk '{print $2}' | head -n 1`
-}
-
 function hay_novedades_pendientes(){
   if [ "$(ls -A $1)" ]
   then
@@ -117,12 +113,12 @@ function hay_novedades_pendientes(){
 function novedades_pedientes(){
 	if hay_novedades_pendientes "$ACEPDIR";
 		then
-		PID=$(get_pid AFRAUMBR)
+		PID=`ps aux | grep "\($BINDIR\)\?/AFRAUMBR" | grep -v grep | awk '{print $2}' | head -n 1`
 
 		if [ "$PID" = "" ]; 
 		then
 			./AFRAUMBR &
-			PID=$(get_pid AFRAUMBR)
+			PID=`ps aux | grep "\($BINDIR\)\?/AFRAUMBR" | grep -v grep | awk '{print $2}' | head -n 1`
 			log_info "AFRAUMBR corriendo bajo el no.: $PID"
 		else
 			log_info "Invocacion de AFRAUMBR propuesta para el siguiente ciclo"
@@ -190,8 +186,9 @@ function verificar_formato(){
 
 # Verificar si el ambiente ya fue inicializado
 if [ "$MAEDIR" == "" ] ; then
+    grabar_en_log "El ambiente no fue inicializado." "ERR"
     echo "El ambiente no fue inicializado. Ejecute . ./AFRAINIC"
-    exit 1
+    return 1
 fi
 
 while [[ true ]]; do
