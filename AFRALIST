@@ -585,9 +585,8 @@ sub resolver_consulta {
 # Resuelve estadisticas 
 # =============================================================================
 sub ranking_centrales {
-  #my ($archivos, $bandera) = @_;
+  my ($archivos, $bandera) = @_;
   my ($archivos) = @_;
-  $bandera=0;
   
   &clear;
   say "*****************************************";
@@ -628,7 +627,6 @@ sub ranking_centrales {
 	}
 	
         $cantidad = `grep "^$central;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*\$" "$ENV{'PROCDIR'}/$archivo" | wc -l`;
-        #$tiempo = `sed -n "s/^$central;[^;]*;[^;]*;[^;]*;[^;]*;\([^;]*\);[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*\$/\1/p" "$ENV{'PROCDIR'}/$_" | paste \-sd\+ | bc -l`;
         chomp($cantidad);
         if ($table{$central}) {
           $table{$central} = $table{$central} + $cantidad;
@@ -870,7 +868,7 @@ sub resolver_estadistica {
   $op0 = 99;
   while ($op0 != 0) {
     $cant_seleccionados = scalar @seleccionados;
-    $tiempos = false;
+    $tiempos = 1;
     &clear;
     say "*****************************************";
     say "MENU : Principal - Estadisticas";
@@ -931,7 +929,7 @@ sub resolver_estadistica {
     }
     if ($op0 == 3 && $cant_seleccionados > 0) {
       @archivos = @seleccionados;
-      $tiempos = true;
+      $tiempos = 0;
       @resultados = ranking_centrales(\@archivos, $tiempos);
       unless ($grabar) {print "Presione enter para volver al menu principal. "; <STDIN>;}
     }
@@ -943,7 +941,7 @@ sub resolver_estadistica {
     }
     if ($op0 == 5 && $cant_seleccionados > 0) {
       @archivos = @seleccionados;
-      $tiempos = true;
+      $tiempos = 0;
       @resultados = ranking_oficinas(\@archivos, $tiempos);
       unless ($grabar) {print "Presione enter para volver al menu principal. "; <STDIN>;}
     }
@@ -956,7 +954,7 @@ sub resolver_estadistica {
     }
     if ($op0 == 7 && $cant_seleccionados > 0) {
       @archivos = @seleccionados;
-      $tiempos = true;
+      $tiempos = 0;
       @resultados = ranking_agentes(\@archivos, $tiempos);
       unless ($grabar) {print "Presione enter para volver al menu principal. "; <STDIN>;}
     }
