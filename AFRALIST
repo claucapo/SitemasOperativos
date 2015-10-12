@@ -718,6 +718,33 @@ sub ranking_umbrales {
   @resultados = ();
   push(@resultados, "umbral;cant_llamadas");
 
+  my %hashCantidades;
+  my $cantidad;
+
+  foreach $archivo (@archivos) {
+
+    open($fh, "<", "$ENV{'PROCDIR'}/$archivo") or die "No se pudo abrir el archivo $ENV{'PROCDIR'} $archivo: $!\n";
+    while(<$fh>) { chomp; 
+      $_ =~ /^[^;]*;[^;]*;([^;]*);[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;$/ || next; 
+      $codigoUmbral=$1;
+      if ($hashCantidades{$codigoUmbral}) {
+	$hashCantidades{$codigoUmbral} = $hashCantidades{$codigoUmbral} + 1;
+      } else {
+	$hashCantidades{$codigoUmbral} = 1;
+      }
+    }
+    close $fh;
+    $fh = '';
+
+    foreach my $llave (sort {$hashCantidades{$b} <=> $hashCantidades{$a}} keys %hashCantidades) {
+      if ($hashCantidades{$llave} > 1) {
+	print("id umbral: $llave\n");
+	print("cantidad: $hashCantidades{$llave}\n");
+	print("----------------------------------------------\n");
+      }
+    }
+  }
+  
   return @resultados;
 } # Fin: ranking_umbrales
 
