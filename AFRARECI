@@ -90,7 +90,7 @@ function aceptar_archivo(){
 	return 0	
 }
 
-function getPid(){
+function get_pid(){
     local ppid=`ps aux | grep "\($BINDIR\)\?/$1.sh" | grep -v grep | awk '{print $2}' | head -n 1`
     echo $ppid
 }
