@@ -23,7 +23,9 @@ Para instalar y ejecutar AFRA-I desde un pen-drive booteable con el sistema oper
 
 9) Responda "Si" para que el inicializador ejecute AFRARECI. Ahora en el sistema está corriendo AFRA-I. Usted puede poner los archivos de llamadas en el directorio de novedades y el programa automáticamente los procesará y volcará los resultados en el directorio de llamadas sospechosas.
 
-10) Cuando deseé detener el programa, en el directorio de ejecutables ejecute el comando: "./Detener.sh AFRARECI" 
+10) Cuando desee detener el programa, en el directorio de ejecutables ejecute el comando: "./Detener.sh AFRARECI"
+
+11) Si desea ejecutar nuevamente AFRARECI, utilice el comando "./Arrancar.sh AFRARECI"
 
 ************************************************************************
 
