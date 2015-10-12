@@ -645,13 +645,13 @@ sub ranking_centrales {
   if ($bandera) { # ranking por cantidad de llamadas
     foreach my $llave (sort {$table{$b} <=> $table{$a}} keys %table) {
       push(@resultados, "$llave;$table{$llave};$centrales{$llave};$tiempos{$llave}");
-      print("1 codigo_central: $llave"); print(", cant_llamadas: $table{$llave}"); print(", desc_central: $centrales{$llave}"); print(", tiempo_llamadas: $tiempos{$llave}\n");
+      print("codigo_central: $llave"); print(", cant_llamadas: $table{$llave}"); print(", desc_central: $centrales{$llave}"); print(", tiempo_llamadas: $tiempos{$llave}\n");
       print("-------------------------------------------------\n");
     }
   } else { # ranking por tiempo de llamada
     foreach my $llave (sort {$tiempos{$b} <=> $tiempos{$a}} keys %tiempos) {
       push(@resultados, "$llave;$table{$llave};$centrales{$llave};$tiempos{$llave}");
-      print("2 codigo_central: $llave"); print(", cant_llamadas: $table{$llave}"); print(", desc_central: $centrales{$llave}"); print(", tiempo_llamadas: $tiempos{$llave}\n");
+      print("codigo_central: $llave"); print(", cant_llamadas: $table{$llave}"); print(", desc_central: $centrales{$llave}"); print(", tiempo_llamadas: $tiempos{$llave}\n");
       print("-------------------------------------------------\n");
     }
   }
@@ -663,7 +663,7 @@ sub ranking_centrales {
 # Resuelve el ranking de llamadas sospechosas por oficina 
 # =============================================================================
 sub ranking_oficinas {
-  my ($archivos) = @_;
+  my ($archivos, $bandera) = @_;
   &clear;
   say "*****************************************";
   say "Ranking de llamadas sospechosas por oficina";
@@ -672,25 +672,54 @@ sub ranking_oficinas {
   @oficinas = map(/(...)_.*$/, @archivos);
   @oficinas = uniq(@oficinas);
 
+  my %tiempos;
+  my $cantidad;
+  my $tiempo;
+
   foreach $oficina (@oficinas) {
     #say "oficina: $oficina";
     $table{$oficina} = 0;
+    $tiempos{$oficina} = 0;
     @recorrer = grep(/$oficina/, @archivos);
     #say "recorrer: @recorrer";
     foreach $archivo (@recorrer) {
       #say "archivo: $archivo";
       $cantidad = `cat "$ENV{'PROCDIR'}/$archivo" | wc -l`;
+      
+      
+      my @listaTiempos;
+      open(my $fh, "<", "$ENV{'PROCDIR'}/$archivo") or die "No se pudo abrir el archivo: $!\n";
+      while(<$fh>) { chomp; 
+	$_ =~ /^[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;([^;]*);[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*$/ || next; 
+	push(@listaTiempos, $1);
+      } 
+      close $fh;
+      
+      my $tiempo = 0;
+      foreach $t (@listaTiempos) {
+	$tiempo = $tiempo + $t;
+      }
+
       $table{$oficina} = $table{$oficina} + $cantidad;
+      $tiempos{$oficina} = $tiempos{$oficina} + $tiempo;
     }
   }
 
   @resultados = ();
-  push(@resultados, "codigo_oficina;cant_llamadas");
-  foreach my $llave (sort {$table{$b} <=> $table{$a}} keys %table) {
-    push(@resultados, "$llave;$table{$llave}");
-    print("$llave "); print("$table{$llave}\n");
+  push(@resultados, "codigo_oficina;cant_llamadas;tiempo_llamadas");
+  
+  if ($bandera) { # ranking por cantidad de llamadas
+    foreach my $llave (sort {$table{$b} <=> $table{$a}} keys %table) {
+      push(@resultados, "$llave;$table{$llave};$tiempos{$llave}");
+      print("codigo_oficina: $llave, cant_llamadas: $table{$llave}, tiempo_llamadas: $tiempos{$llave}\n");
+    }
+  } else { # ranking por tiempo de llamada
+    foreach my $llave (sort {$tiempos{$b} <=> $tiempos{$a}} keys %tiempos) {
+      push(@resultados, "$llave;$table{$llave};$tiempos{$llave}");
+      print("codigo_oficina: $llave, cant_llamadas: $table{$llave}, tiempo_llamadas: $tiempos{$llave}\n");
+    }
   }
-
+  
   return @resultados;
 } # Fin: ranking_oficinas
 
