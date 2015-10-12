@@ -77,12 +77,15 @@ ESTADISTICAS
                Blanco selecciona todos los disponibles
           T    Termina el proceso de seleccion y vuelve al menu anterior
           B    Borra todos los elementos seleccionados
-     2    Emite el ranking de llamadas sospechosas por central
-     3    Emite el ranking de llamadas sospechosas por oficina
-     4    Emite el ranking de llamadas sospechosas por agente
-     5    Emite el ranking de llamadas sospechosas por destino
-     6    Emite el ranking de llamadas sospechosas por umbrales
-     7    Finaliza el programa
+     2    Ranking de llamadas sospechosas por central ordenado por cantidad de llamadas
+     3    Ranking de llamadas sospechosas por central ordenado por tiempo de conversacion
+     4    Ranking de llamadas sospechosas por oficina ordenado por cantidad de llamadas
+     5    Ranking de llamadas sospechosas por oficina ordenado por tiempo de conversacion
+     6    Ranking de llamadas sospechosas por agente ordenado por cantidad de llamadas
+     7    Ranking de llamadas sospechosas por agente ordenado por tiempo de conversacion
+     8    Ranking de llamadas sospechosas por destino
+     9    Ranking de llamadas sospechosas por umbrales
+     0    Finaliza el programa
 
      Si se indicó [-w] al ejecutar el programa, solicita nombre de archivo 
      y graba el resultado en el directorio REPODIR/estadisticas caso contrario
@@ -758,9 +761,9 @@ sub ranking_destinos {
         $hashCantidades{$codigoPais.$codigoArea.$numeroLinea} = 1;
       }
       if ($codigoPais) {
-	$hashLugar{$codigoPais.$codigoArea.$numeroLinea} = $paises{$codigoPais};
+        $hashLugar{$codigoPais.$codigoArea.$numeroLinea} = $paises{$codigoPais};
       } else {
-	$hashLugar{$codigoPais.$codigoArea.$numeroLinea} = $provincias{$codigoArea};
+        $hashLugar{$codigoPais.$codigoArea.$numeroLinea} = $provincias{$codigoArea};
       }
     }
     close $fh;
@@ -830,18 +833,24 @@ sub resolver_estadistica {
 
   my @seleccionados;
 
-  while ($op0 != 7) {
+  say "qwe $op0";
+  $op0 = 99;
+  while ($op0 != 0) {
     $cant_seleccionados = scalar @seleccionados;
+    $tiempos = false;
     &clear;
     say "*****************************************";
     say "MENU : Principal - Estadisticas";
     say "1 - Seleccionar Filtro Periodo AñoMes ($cant_seleccionados archivos)";
-    say "2 - Ranking de llamadas sospechosas por central";
-    say "3 - Ranking de llamadas sospechosas por oficina";
-    say "4 - Ranking de llamadas sospechosas por agente";
-    say "5 - Ranking de llamadas sospechosas por destino";
-    say "6 - Ranking de llamadas sospechosas por umbrales";
-    say "7 - Salir";
+    say "2 - Ranking de llamadas sospechosas por central (x cantidad)";
+    say "3 - Ranking de llamadas sospechosas por central (x tiempo)";
+    say "4 - Ranking de llamadas sospechosas por oficina (x cantidad)";
+    say "5 - Ranking de llamadas sospechosas por oficina (x tiempo)";
+    say "6 - Ranking de llamadas sospechosas por agente (x cantidad)";
+    say "7 - Ranking de llamadas sospechosas por agente (x tiempo)";
+    say "8 - Ranking de llamadas sospechosas por destino";
+    say "9 - Ranking de llamadas sospechosas por umbrales";
+    say "0 - Salir";
     say "*****************************************";
     say "Seleccione opcion y presione enter.";
     $op0 = <STDIN>;
@@ -884,37 +893,55 @@ sub resolver_estadistica {
       # Cuál es la central con mayor cantidad de llamadas sospechosas? // Cual es el ranking de centrales?
       #   Mostrar además del código, la descripción de la central
       @archivos = @seleccionados;
-      @resultados = ranking_centrales(\@archivos);
+      @resultados = ranking_centrales(\@archivos, $tiempos);
       unless ($grabar) {print "Presione enter para volver al menu principal. "; <STDIN>;}
     }
     if ($op0 == 3 && $cant_seleccionados > 0) {
-      # Cuál es la oficina con mayor cantidad de llamadas sospechosas? // Cual es el ranking de oficinas?
       @archivos = @seleccionados;
-      @resultados = ranking_oficinas(\@archivos);
+      $tiempos = true;
+      @resultados = ranking_centrales(\@archivos, $tiempos);
       unless ($grabar) {print "Presione enter para volver al menu principal. "; <STDIN>;}
     }
     if ($op0 == 4 && $cant_seleccionados > 0) {
-      # Cuál es el agente con mayor cantidad de llamadas sospechosas? // Cual es el ranking de agentes?
-      #   Mostar además del id del agente, el correo electrónico y la oficina a la que pertenece
+      # Cuál es la oficina con mayor cantidad de llamadas sospechosas? // Cual es el ranking de oficinas?
       @archivos = @seleccionados;
-      @resultados = ranking_agentes(\@archivos);
+      @resultados = ranking_oficinas(\@archivos, $tiempos);
       unless ($grabar) {print "Presione enter para volver al menu principal. "; <STDIN>;}
     }
     if ($op0 == 5 && $cant_seleccionados > 0) {
+      @archivos = @seleccionados;
+      $tiempos = true;
+      @resultados = ranking_oficinas(\@archivos, $tiempos);
+      unless ($grabar) {print "Presione enter para volver al menu principal. "; <STDIN>;}
+    }
+    if ($op0 == 6 && $cant_seleccionados > 0) {
+      # Cuál es el agente con mayor cantidad de llamadas sospechosas? // Cual es el ranking de agentes?
+      #   Mostar además del id del agente, el correo electrónico y la oficina a la que pertenece
+      @archivos = @seleccionados;
+      @resultados = ranking_agentes(\@archivos, $tiempos);
+      unless ($grabar) {print "Presione enter para volver al menu principal. "; <STDIN>;}
+    }
+    if ($op0 == 7 && $cant_seleccionados > 0) {
+      @archivos = @seleccionados;
+      $tiempos = true;
+      @resultados = ranking_agentes(\@archivos, $tiempos);
+      unless ($grabar) {print "Presione enter para volver al menu principal. "; <STDIN>;}
+    }
+    if ($op0 == 8 && $cant_seleccionados > 0) {
       # Cuál es el destino con mayor cantidad de llamadas sospechosas? // Cual es el ranking de destinos?
       #   Mostrar además del código, el nombre del país o el nombre de la ciudad –provincia según corresponda
       @archivos = @seleccionados;
       @resultados = ranking_destinos(\@archivos);
       unless ($grabar) {print "Presione enter para volver al menu principal. "; <STDIN>;}
     }
-    if ($op0 == 6 && $cant_seleccionados > 0) {
+    if ($op0 == 9 && $cant_seleccionados > 0) {
       # Cuál es el ranking de umbrales?
       #   Para este ranking no evaluar los umbrales con una sola llamada sospechosa.
       @archivos = @seleccionados;
       @resultados = ranking_umbrales(\@archivos);
       unless ($grabar) {print "Presione enter para volver al menu principal. "; <STDIN>;}
     }
-    if ($op0 != 7 && !$cant_seleccionados > 0) {
+    if ($op0 != 0 && !$cant_seleccionados > 0) {
       # Precondicion, debe seleccionar archivos
       say "Error: Debe seleccionar archivos a consultar en la opcion 1.";
       sleep 2;
