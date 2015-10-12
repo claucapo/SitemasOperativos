@@ -91,8 +91,7 @@ function aceptar_archivo(){
 }
 
 function get_pid(){
-    local ppid=`ps aux | grep "\($BINDIR\)\?/$1.sh" | grep -v grep | awk '{print $2}' | head -n 1`
-    echo $ppid
+    local ppid=`ps aux | grep "\($BINDIR\)\?/$1" | grep -v grep | awk '{print $2}' | head -n 1`
 }
 
 function hay_novedades_pendientes(){
@@ -191,9 +190,8 @@ function verificar_formato(){
 
 # Verificar si el ambiente ya fue inicializado
 if [ "$MAEDIR" == "" ] ; then
-    grabar_en_log "El ambiente no fue inicializado." "ERR"
     echo "El ambiente no fue inicializado. Ejecute . ./AFRAINIC"
-    return 1
+    exit 1
 fi
 
 while [[ true ]]; do

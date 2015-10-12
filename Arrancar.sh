@@ -5,7 +5,7 @@
 nombreScript=`basename "$0"`
 
 if [ "$MAEDIR" = '' ]; then 
-	echo "Ambiente no inicializado"		
+	echo "El ambiente no fue inicializado. Ejecute . ./AFRAINIC"		
 	exit 1
 fi
 
