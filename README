@@ -1,5 +1,8 @@
 # AFRA-I
 
+# INSTALACIÓN
+************************************************************************
+
 Para instalar y ejecutar AFRA-I desde un pen-drive booteable con el sistema operativo kUbuntu:
 
 1) Conecte el pen-drive a un puerto USB de la computadora.
@@ -18,9 +21,36 @@ Para instalar y ejecutar AFRA-I desde un pen-drive booteable con el sistema oper
 
 8) El inicializador informará que la instalación está completa y preguntará si desea ejecutar AFRARECI. De no ser así, vuelva al paso (5) y se le informará de cómo completar la instalación.
 
-9) Responda "Si" para que el inicializador ejecute AFRARECI. Ahora en el sistema está corriendo AFRA-I. Usted puede poner los archivos de llamadas en el directorio definido para ello y el programa automáticamente lo procesará y volcará los resultados en el directorio de llamadas sospechosas.
+9) Responda "Si" para que el inicializador ejecute AFRARECI. Ahora en el sistema está corriendo AFRA-I. Usted puede poner los archivos de llamadas en el directorio de novedades y el programa automáticamente los procesará y volcará los resultados en el directorio de llamadas sospechosas.
 
-10) Cuando deseé detener el programa, en el directorio de ejecutables ejecute el comando: "./Detener.sh" 
+10) Cuando deseé detener el programa, en el directorio de ejecutables ejecute el comando: "./Detener.sh AFRARECI" 
+
+************************************************************************
+
+# Comandos
+
+************************************************************************
+
+AFRAINST
+Instala el sistema AFRA-I en el directorio donde se encuentra. Permite personalizar los nombres de los directorios y otros valores clave para el sistema.
+El comando no necesita ningún parámetro para funcionar.
+Si se ejecuta con el sistema instalado, el comando corroborará que todos los componentes se encuentren correctamente instalados y, de no ser así, consultará al usuario si desea reparar la instalación.
+
+AFRAINIC
+Inicializa las variables de entorno necesarias por los demás comandos para poder funcionar correctamente. Además, es capaz de detectar componentes mal instalados y, en tal caso, sugerirá al usuario que ejecute AFRAINST para reparar los problemas.
+El comando no necesita ningún parámetro para funcionar.
+Al finalizar la inicialización preguntará al usuario si desea ejecutar AFRARECI automáticamente.
+Si se ejecuta con el ambiente ya inicializado se le informará al usuario la situación y terminará la ejecucioń.
+
+AFRARECI
+Es el demonio encargado de verificar presencia de archivos en el directorio de novedades y llamar a AFRAUMBR para su procesamiento.
+El comando no necesita ningún parámetro para funcionar, pero necesita como condición previa que el ambiente haya sido inicializado.
+El usuario puede arrancarlo mediante el comando "./Arrancar.sh AFRARECI" y detenerlo con el comando "./Detener.sh AFRARECI".
+
+AFRAUMBR
+Procesa los archivos de llamadas y busca las llamadas sospechosas según los umbrales definidos.
+El comando no necesita ningún parámetro para funcionar, pero necesita como condición previa que el ambiente haya sido inicializado.
+Es iniciado por AFRARECI.
 
 AFRALIST
 Puede consultar las llamas sospechosas utilizando el programa AFRALIST del directorio de binarios
