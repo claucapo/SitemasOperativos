@@ -733,9 +733,9 @@ sub ranking_umbrales {
       $_ =~ /^[^;]*;[^;]*;([^;]*);[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;$/ || next; 
       $codigoUmbral=$1;
       if ($hashCantidades{$codigoUmbral}) {
-	$hashCantidades{$codigoUmbral} = $hashCantidades{$codigoUmbral} + 1;
+        $hashCantidades{$codigoUmbral} = $hashCantidades{$codigoUmbral} + 1;
       } else {
-	$hashCantidades{$codigoUmbral} = 1;
+        $hashCantidades{$codigoUmbral} = 1;
       }
     }
     close $fh;
@@ -743,9 +743,10 @@ sub ranking_umbrales {
 
     foreach my $llave (sort {$hashCantidades{$b} <=> $hashCantidades{$a}} keys %hashCantidades) {
       if ($hashCantidades{$llave} > 1) {
-	print("id umbral: $llave\n");
-	print("cantidad: $hashCantidades{$llave}\n");
-	print("----------------------------------------------\n");
+        push(@resultados, "$llave;$hashCantidades{$llave}");
+        print("id umbral: $llave\n");
+        print("cantidad: $hashCantidades{$llave}\n");
+        print("----------------------------------------------\n");
       }
     }
   }
