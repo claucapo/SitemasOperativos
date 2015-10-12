@@ -45,7 +45,7 @@ function verificar_aniomesdia(){
 	local fecha_actual=`date +%Y%m%d`
 
 	#verifico si es una fecha valida
-	if ! date -d "${fecha_file:0:4}-${fecha_file:4:2}-${fecha_file:6:2}";
+	if ! date -d "${fecha_file:0:4}-${fecha_file:4:2}-${fecha_file:6:2}" > /dev/null;
 		then 
 		log_info "Fecha invalida ${1##*/} - Fecha de archivo tiene valores invalidos"
 		rechazar-archivo $1
@@ -130,10 +130,9 @@ function novedades_pedientes(){
 #verfica que los archivos tengan cod_central dentro de maestro
 
 function verificar_cod_central(){
-		
 local cod_central=`echo ${1##*/} | sed 's/^\(.*\)_\(.*\)/\1/g'`
 
-if ! grep "^$cod_central;" "$2" ;
+if ! grep -q "^$cod_central;" "$2" ;
 	then
 		rechazar_archivo $1
 		log_info "Rechazado ${1##*/} - [$cod_central] Central inexistente"
