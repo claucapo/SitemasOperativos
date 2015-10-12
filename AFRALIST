@@ -12,39 +12,83 @@ $VERSION = '1.0';
 # =============================================================================
 sub mostrar_ayuda {
   print "
-NAME
+NOMBRE
      AFRALIST - Consultas y estadisticas de llamadas sospechosas
 
-SYNOPSIS
-     AFRALIST [-r|-s] [FILES ...] [-w] 
+SINOPSIS
+     AFRALIST [-r|-s] [-w] [-h] 
 
-DESCRIPTION
+DESCRIPCION
      AFRALIST permite realizar consultas y estadiscas de llamadas
-     sospechozas, tambien permite grabarlas en archivo.
+     sospechosas, tambien permite grabarlas en archivo.
 
-OPTIONS
-     -r   Consulta
+OPCIONES
+     -r   Consulta (excluyente con -s)
 
-     -s   Estadistica
+     -s   Estadistica (excluyente con -r)
 
-     -w   Grabar resultados en archivo
+     -w   Grabar resultados en archivo (requiere -r o -s)
 
      -h   Ayuda
 
-FILES
-     /.../.....conf
-          The system wide configuration file. See foo(5) for fur-
-          ther details.
+ENTORNO
+     BINDIR     Debe estar seteada por AFRAINIC
+     PROCDIR    Apunta al directorio de llamadas sospechosas
+     REPODIR    Apunta al directorio donde se general los reportes
+     MAEDIR     Apunta al directorio de maestros
 
-ENVIRONMENT
-     BINDIR
-          If non-null the full pathname for an  alternate  system
-          wide foo.conf.
-     PROCDIR
-     REPODIR
-     MAEDIR
+CONSULTAS
+     Muestra menu principal de opciones de consultas
+     1    Permite seleccionar los archivos a consultar
+     2    Permite seleccionar los filtros
+     3    Procesa los archivos seleccionados con los filtros
+     4    Finaliza el programa
 
-AUTHOR
+     Seleccion de archivos
+          Se realiza ingresando el nombre o parte del nombre disponible 
+          que se desea seleccionar 
+     
+     Seleccion de filtros
+     1    Selecciona las centrales de un listado de centrales disponibles
+     2    Selecciona los agentes de un listado de agentes disponibles
+     3    Selecciona los umbrales de un listado de umbrales disponibles
+     4    Selecciona los tipos de llamadas de un listado de tipos disponibles
+     5    Selecciona un rango de tiempos de conversacion, primero debe
+          ingresar un valor numerico de menor tiempo y luego un valor 
+          numero de maximo tiempo de llamada a filtrar
+     6    Selecciona los numeros A (numeros origen) ingresando el numero
+          con formato <cod_area>;<numero_linea>
+     7    Finaliza el programa
+
+     Opciones comunes
+          Blanco selecciona todos los disponibles
+     T    Termina el proceso de seleccion y vuelve al menu anterior
+     B    Borra todos los elementos seleccionados
+
+     Procesar archivos seleccionados
+          Si se indicó [-w] graba el resultado en el directorio REPODIR
+          con nombre subllamada.xxx donde xxx es un contador, caso contrario
+          emite el listado por pantalla
+
+ESTADISTICAS
+     Muestra menu principal de opciones de estadistica
+     1    Permite seleccionar los archivos a consultar por periodo en
+          formato <anio-llamada><mes-llamada>
+               Blanco selecciona todos los disponibles
+          T    Termina el proceso de seleccion y vuelve al menu anterior
+          B    Borra todos los elementos seleccionados
+     2    Emite el ranking de llamadas sospechosas por central
+     3    Emite el ranking de llamadas sospechosas por oficina
+     4    Emite el ranking de llamadas sospechosas por agente
+     5    Emite el ranking de llamadas sospechosas por destino
+     6    Emite el ranking de llamadas sospechosas por umbrales
+     7    Finaliza el programa
+
+     Si se indicó [-w] al ejecutar el programa, solicita nombre de archivo 
+     y graba el resultado en el directorio REPODIR/estadisticas caso contrario
+     emite el listado por pantalla
+
+AUTORES
      Claudio Anibal Smith <claucapo@gmail.com>
      Lautaro de los Heros <lautarodelosheros@gmail.com>
      Nicolas Cian <nicolas.cian@gmail.com>
@@ -52,7 +96,7 @@ AUTHOR
      Adrián Ríssola <adryanpr@hotmail.com>
      Leandro Rinaldi <rinaldi.leandro@gmail.com>
 
-SEE ALSO
+VER MAS
      La documentacion de todo el sistema AFRA-I se encuentra en el archivo readme.\n";
   exit 1;
 
@@ -858,7 +902,7 @@ sub resolver_estadistica {
       print "Cantidad de registros: "; say scalar @resultados;
       say "*****************************************";
       # Definir nombre de archivo de salida
-      print "Ingrese nombre de archivo para guardar el reporte: ";
+      print "Ingrese nombre de archivo CSV para guardar el reporte (sin extension): ";
       chomp($nom = <STDIN>);
       $folder = "$ENV{'REPODIR'}/estadisticas";
       $salida = "$folder/$nom.csv";

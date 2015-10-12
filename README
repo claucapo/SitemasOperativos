@@ -22,8 +22,6 @@ Para instalar y ejecutar AFRA-I desde un pen-drive booteable con el sistema oper
 
 10) Cuando deseé detener el programa, en el directorio de ejecutables ejecute el comando: "./Detener.sh" 
 
-
-
 AFRALIST
 Puede consultar las llamas sospechosas utilizando el programa AFRALIST del directorio de binarios
 Si lo que desea es filtrar las llamadas sospechosas utilize el parametro -r
@@ -46,38 +44,3 @@ c. Utilize la opcion 3 para procesar los archivos seleccionados con los filtros 
    En este caso se mostrara el reporte en pantalla (para que los reporte se graben en archivo debe iniciar el programa con parametro -w ej. $ ./AFRALIST -r -w)
 d. Presione enter para modificar las selecciones anteriores y volver a gener otro reporte.
 e. Desde el menu principal utilize la opcion 4 para finaliar el programa.
-
-
-
-
-
-
-
-
-a) Una explicación de cómo arrancar el SO desde puerto USB 
-
-b) Una explicación de cómo loguearse 
-
-c) Una explicación de cómo descargar el paquete 
-
-d) Una explicación de cómo copiar, descomprimir, crear directorio del grupo, etc 
-
-e) Que se requiere para poder instalar 
-
-f) Instrucciones de instalación del sistema AFRA-I 
-
-# Ejecutar el instalador
-./AFRAINST
-
-g) Que nos deja la instalación y dónde 
-
-h) Cuáles son los primeros pasos para poder correr el sistema una vez instalado 
-
-# Ejecutar 
-./
-
-i) Como frenar la ejecución de comandos 
-
-j) Cualquier otra indicación que considere necesaria
-
-
