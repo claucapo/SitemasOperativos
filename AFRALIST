@@ -630,7 +630,7 @@ sub ranking_centrales {
         chomp($cantidad);
         if ($table{$central}) {
           $table{$central} = $table{$central} + $cantidad;
-          $tiempos{$central} = $tiempos{$central} + $tiempo
+          $tiempos{$central} = $tiempos{$central} + $tiempo;
         } else {
           $table{$central} = $cantidad;
 	  $tiempos{$central} = $tiempo;
@@ -685,8 +685,7 @@ sub ranking_oficinas {
     foreach $archivo (@recorrer) {
       #say "archivo: $archivo";
       $cantidad = `cat "$ENV{'PROCDIR'}/$archivo" | wc -l`;
-      
-      
+            
       my @listaTiempos;
       open(my $fh, "<", "$ENV{'PROCDIR'}/$archivo") or die "No se pudo abrir el archivo: $!\n";
       while(<$fh>) { chomp; 
@@ -727,7 +726,7 @@ sub ranking_oficinas {
 # Resuelve el ranking de llamadas sospechosas por agente
 # =============================================================================
 sub ranking_agentes {
-  my ($archivos) = @_;
+  my ($archivos, $bandera) = @_;
   &clear;
   say "*****************************************";
   say "Ranking de llamadas sospechosas por agente";
@@ -738,37 +737,67 @@ sub ranking_agentes {
   #print("$ENV{'MAEDIR'}/agentes.mae\n");
   open(my $fh, "<", "$ENV{'MAEDIR'}/agentes.mae") or die "No se pudo abrir el archivo: $!\n";
   while(<$fh>) { chomp; 
-    $_ =~ /^([^;]*);[^;]*;[^;]*;([^;]*);([^;]*)$/ || next; 
+    $_ =~ /^[^;]*;[^;]*;([^;]*);([^;]*);([^;]*)$/ || next; 
     push(@agentes_disponibles, $1);
     $agentes{$1} = $2 . " - " . $3;
   } 
   close $fh;
 
   my %hashCantidades;
+  my %tiempos;
   my $cantidad;
+  my $tiempo;
+
   for ($i = 0; $i<= $#agentes_disponibles; $i++) {
-    foreach (@archivos) {
-      if ( ! -x "$ENV{'PROCDIR'}/$_" ) {
+    foreach $archivo (@archivos) {
+      if ( ! -x "$ENV{'PROCDIR'}/$archivo" ) {
         $agente = $agentes_disponibles[$i];
-        $cantidad = `grep "^[^;]*;$agente;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*\$" "$ENV{'PROCDIR'}/$_" | wc -l`;
+        $cantidad = `grep "^[^;]*;$agente;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*\$" "$ENV{'PROCDIR'}/$archivo" | wc -l`;
         chomp($cantidad);
+        
+	my @listaTiempos;
+	open(my $fh, "<", "$ENV{'PROCDIR'}/$archivo") or die "No se pudo abrir el archivo: $!\n";
+	while(<$fh>) { chomp; 
+	  $_ =~ /^[^;]*;$agente;[^;]*;[^;]*;[^;]*;([^;]*);[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*$/ || next; 
+	  push(@listaTiempos, $1);
+	} 
+	close $fh;
+
+	my $tiempo = 0;
+	foreach $t (@listaTiempos) {
+	  $tiempo = $tiempo + $t;
+	}
+
         if ($hashCantidades{$agente}) {
-          $hashCantidades{$agente} = $hashCantidades{$agente}+$cantidad;
+          $hashCantidades{$agente} = $hashCantidades{$agente} + $cantidad;
+          $tiempos{$agente} = $tiempos{$agente} + $tiempo;
         } else {
           $hashCantidades{$agente} = $cantidad;
+	  $tiempos{$agente} = $tiempo;
         }
       }
     }
   }    
 
   @resultados = ();
-  push(@resultados, "agente;cant_llamadas;oficina-email");
-  foreach my $llave (sort {$hashCantidades{$b} <=> $hashCantidades{$a}} keys %hashCantidades) {
-    push(@resultados, "$llave;$hashCantidades{$llave};$agentes{$llave}");
-    print("agente: $llave\n"); print("cantidad: $hashCantidades{$llave}\n"); print("oficina - e-mail: $agentes{$llave}"."\n");
-    print("----------------------------------------------------------------------------\n");
+  push(@resultados, "agente;cant_llamadas;oficina-email;tiempo_llamadas");
+  
+  if ($bandera) { # ranking por cantidad de llamadas
+    foreach my $llave (sort {$hashCantidades{$b} <=> $hashCantidades{$a}} keys %hashCantidades) {
+      push(@resultados, "$llave;$hashCantidades{$llave};$agentes{$llave};$tiempos{$llave}");
+      print("agente: $llave\n"); print("cantidad: $hashCantidades{$llave}\n"); print("oficina - e-mail: $agentes{$llave}"."\n");
+      print("tiempo_llamadas: $tiempos{$llave}"."\n");
+      print("----------------------------------------------------------------------------\n");
+    }
+  } else { # ranking por tiempo de llamada
+    foreach my $llave (sort {$tiempos{$b} <=> $tiempos{$a}} keys %tiempos) {
+      push(@resultados, "$llave;$hashCantidades{$llave};$agentes{$llave};$tiempos{$llave}");
+      print("agente: $llave\n"); print("cantidad: $hashCantidades{$llave}\n"); print("oficina - e-mail: $agentes{$llave}"."\n");
+      print("tiempo_llamadas: $tiempos{$llave}"."\n");
+      print("----------------------------------------------------------------------------\n");
+    }
   }
-
+  
   return @resultados;
 } # Fin: ranking_agentes
 
