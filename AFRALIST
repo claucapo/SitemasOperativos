@@ -212,41 +212,41 @@ sub procesar_archivos {
     while(<$fh>) {
       chomp;
       $match = 0;
-      say "Registro: $_";
+      #say "Registro: $_";
       if ($_ =~ /($central);.*;.*;.*;.*;.*;.*;.*;.*;.*;.*;.*/) {
         #say $_; say "match central "; 
-        print "central-ok ";
+        #print "central-ok ";
         $match++;
       } 
       if ($_ =~ /.*;($agente);.*;.*;.*;.*;.*;.*;.*;.*;.*;.*/) {
         #say $_; say "match agente "; 
-        print "agente-ok ";
+        #print "agente-ok ";
         $match++;
       }
       if ($_ =~ /.*;.*;($umbral);.*;.*;.*;.*;.*;.*;.*;.*;.*/) {
         #say $_; say "match umbral "; 
-        print "umbral-ok ";
+        #print "umbral-ok ";
         $match++;
       }
       if ($_ =~ /.*;.*;.*;($tipo);.*;.*;.*;.*;.*;.*;.*;.*/) {
         #say $_; say "match tipo "; 
-        print "tipo-ok ";
+        #print "tipo-ok ";
         $match++;
       }
       if ($_ =~ /.*;.*;.*;.*;.*;.*;($numero);.*;.*;.*;.*/) {
         #say $_; say "match numero "; 
-        print "numero-ok ";
+        #print "numero-ok ";
         $match++;
       }
       if ($desde and $hasta) {
         if ($_ =~ /.*;.*;.*;.*;.*;(.*);.*;.*;.*;.*;.*;.*/ and $1 > $desde and $1 < $hasta) {
           #say $_; say "match rango tiempo "; 
-          print "rango-ok ";
+          #print "rango-ok ";
           $match++;
         }
       } else { 
         #say $_; say "match rango tiempo "; 
-        print "rango-ok ";
+        #print "rango-ok ";
         $match++;
       }
       if ($match >= 6) {
@@ -343,6 +343,7 @@ sub resolver_consulta {
         push(@arch_disponibles, @arch_prev_disponibles);
         # Quitamos el subdirectorio
         @arch_disponibles = grep(!/^proc$/, @arch_disponibles);
+        @arch_disponibles = grep(!/^estadisticas$/, @arch_disponibles);
         &clear;
         say "*****************************************";
         say "MENU : Seleccionar Archivos";
@@ -586,8 +587,6 @@ sub resolver_consulta {
 # =============================================================================
 sub ranking_centrales {
   my ($archivos, $bandera) = @_;
-  my ($archivos) = @_;
-  
   &clear;
   say "*****************************************";
   say "Ranking de llamadas sospechosas por central";
@@ -613,19 +612,19 @@ sub ranking_centrales {
       if ( ! -x "$ENV{'PROCDIR'}/$archivo" ) {
         $central = $centrales_disponibles[$i];
                 
-	my @listaTiempos;
-	open(my $fh, "<", "$ENV{'PROCDIR'}/$archivo") or die "No se pudo abrir el archivo: $!\n";
-	while(<$fh>) { chomp; 
-	  $_ =~ /^$central;[^;]*;[^;]*;[^;]*;[^;]*;([^;]*);[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*$/ || next; 
-	  push(@listaTiempos, $1);
-	} 
-	close $fh;
-	
-	my $tiempo = 0;
-	foreach $t (@listaTiempos) {
-	  $tiempo = $tiempo + $t;
-	}
-	
+        my @listaTiempos;
+        open(my $fh, "<", "$ENV{'PROCDIR'}/$archivo") or die "No se pudo abrir el archivo: $!\n";
+        while(<$fh>) { chomp; 
+          $_ =~ /^$central;[^;]*;[^;]*;[^;]*;[^;]*;([^;]*);[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*$/ || next; 
+          push(@listaTiempos, $1);
+        } 
+        close $fh;
+        
+        my $tiempo = 0;
+        foreach $t (@listaTiempos) {
+          $tiempo = $tiempo + $t;
+        }
+        
         $cantidad = `grep "^$central;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*\$" "$ENV{'PROCDIR'}/$archivo" | wc -l`;
         chomp($cantidad);
         if ($table{$central}) {
@@ -633,7 +632,7 @@ sub ranking_centrales {
           $tiempos{$central} = $tiempos{$central} + $tiempo;
         } else {
           $table{$central} = $cantidad;
-	  $tiempos{$central} = $tiempo;
+          $tiempos{$central} = $tiempo;
         }
       }
     }
@@ -689,14 +688,14 @@ sub ranking_oficinas {
       my @listaTiempos;
       open(my $fh, "<", "$ENV{'PROCDIR'}/$archivo") or die "No se pudo abrir el archivo: $!\n";
       while(<$fh>) { chomp; 
-	$_ =~ /^[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;([^;]*);[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*$/ || next; 
-	push(@listaTiempos, $1);
+        $_ =~ /^[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;([^;]*);[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*$/ || next; 
+        push(@listaTiempos, $1);
       } 
       close $fh;
       
       my $tiempo = 0;
       foreach $t (@listaTiempos) {
-	$tiempo = $tiempo + $t;
+        $tiempo = $tiempo + $t;
       }
 
       $table{$oficina} = $table{$oficina} + $cantidad;
@@ -755,25 +754,25 @@ sub ranking_agentes {
         $cantidad = `grep "^[^;]*;$agente;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*\$" "$ENV{'PROCDIR'}/$archivo" | wc -l`;
         chomp($cantidad);
         
-	my @listaTiempos;
-	open(my $fh, "<", "$ENV{'PROCDIR'}/$archivo") or die "No se pudo abrir el archivo: $!\n";
-	while(<$fh>) { chomp; 
-	  $_ =~ /^[^;]*;$agente;[^;]*;[^;]*;[^;]*;([^;]*);[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*$/ || next; 
-	  push(@listaTiempos, $1);
-	} 
-	close $fh;
+        my @listaTiempos;
+        open(my $fh, "<", "$ENV{'PROCDIR'}/$archivo") or die "No se pudo abrir el archivo: $!\n";
+        while(<$fh>) { chomp; 
+          $_ =~ /^[^;]*;$agente;[^;]*;[^;]*;[^;]*;([^;]*);[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*$/ || next; 
+          push(@listaTiempos, $1);
+        } 
+        close $fh;
 
-	my $tiempo = 0;
-	foreach $t (@listaTiempos) {
-	  $tiempo = $tiempo + $t;
-	}
+        my $tiempo = 0;
+        foreach $t (@listaTiempos) {
+          $tiempo = $tiempo + $t;
+        }
 
         if ($hashCantidades{$agente}) {
           $hashCantidades{$agente} = $hashCantidades{$agente} + $cantidad;
           $tiempos{$agente} = $tiempos{$agente} + $tiempo;
         } else {
           $hashCantidades{$agente} = $cantidad;
-	  $tiempos{$agente} = $tiempo;
+          $tiempos{$agente} = $tiempo;
         }
       }
     }
