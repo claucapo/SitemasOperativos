@@ -48,7 +48,7 @@ function verificar_aniomesdia(){
 	if ! date -d "${fecha_file:0:4}-${fecha_file:4:2}-${fecha_file:6:2}" > /dev/null;
 		then 
 		log_info "Fecha invalida ${1##*/} - Fecha de archivo tiene valores invalidos"
-		rechazar-archivo $1
+		rechazar_archivo $1
 		return 1
 	fi
 
