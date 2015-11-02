@@ -56,6 +56,7 @@ export RECHDIR=`grep RECHDIR "$CONFDIR/AFRAINST.conf" | cut -d '=' -f 2`
 export DATASIZE=`grep DATASIZE "$CONFDIR/AFRAINST.conf" | cut -d '=' -f 2`
 export LOGSIZE=`grep LOGSIZE "$CONFDIR/AFRAINST.conf" | cut -d '=' -f 2`
 export LOGEXT=`grep LOGEXT "$CONFDIR/AFRAINST.conf" | cut -d '=' -f 2`
+cd "$BINDIR"
 
 # Verificar instalacion completa
 estado_instalacion=COMPLETA
@@ -141,7 +142,7 @@ for archivo in ${archivos[@]} ; do
         if [ ! -x "$archivo" ] || [ ! -r "$archivo" ] ; then
             grabar_en_log "No es posible cambiar los permisos del archivo $archivo." "ERR"
             echo "No es posible cambiar los permisos del archivo $archivo."
-            return $error 
+            return $error
         fi
     fi
 done
