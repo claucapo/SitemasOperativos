@@ -90,14 +90,14 @@ if ! [ -f "$CONFDIR"/AFRAINST.conf ] ; then
         disponible="${disponible%?}" # Saco la M del final
         datasize=INVALIDO
         while ! [[ "$datasize" =~ ^[0-9]*$ ]] ; do # Repetir mientras no se ingrese un numero
-            obtener_valor datasize "Defina el espacio mínimo libre para la recepción de archivos de llamadas en MBytes ($DATASIZE): " $DATASIZE
+            obtener_valor datasize "Defina el espacio mínimo libre para la recepción de archivos de llamadas en un número entero de MBytes ($DATASIZE): " $DATASIZE
         done
         while ! [[ "$disponible" -ge $datasize ]] ; do
             grabar_en_log "Insuficiente espacio en disco. Espacio disponible: " $disponible "MB. Espacio requerido: " $datasize "MB." "ERR"
             echo -e "Insuficiente espacio en disco.\n\nEspacio disponible: " $disponible "MB.\n\nEspacio requerido: " $datasize "MB.\n\nInténtelo nuevamente."
             datasize=INVALIDO
             while ! [[ "$datasize" =~ ^[0-9]*$ ]] ; do # Repetir mientras no se ingrese un numero
-                obtener_valor datasize "Defina el espacio mínimo libre para la recepción de archivos de llamadas en MBytes ($DATASIZE): " $DATASIZE
+                obtener_valor datasize "Defina el espacio mínimo libre para la recepción de archivos de llamadas en un número entero de MBytes ($DATASIZE): " $DATASIZE
             done
         done
         DATASIZE=$datasize
@@ -121,7 +121,7 @@ if ! [ -f "$CONFDIR"/AFRAINST.conf ] ; then
 
         logsize=INVALIDO
         while ! [[ "$logsize" =~ ^[0-9]*$ ]] ; do # Repetir mientras no se ingrese un numero
-            obtener_valor logsize "Defina el tamaño máximo para cada archivo de log en kBytes ($LOGSIZE): " $LOGSIZE
+            obtener_valor logsize "Defina el tamaño máximo para cada archivo de log en un número entero de kBytes ($LOGSIZE): " $LOGSIZE
         done
         LOGSIZE=$logsize
 

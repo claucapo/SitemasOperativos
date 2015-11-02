@@ -7,30 +7,41 @@ Para instalar y ejecutar AFRA-I desde un pen-drive booteable con el sistema oper
 
 1) Conecte el pen-drive a un puerto USB de la computadora.
 
-2) Inicie el sistema y en la pestaña "boot" seleccione el dispositivo USB como prioritario.
+2) Inicie el sistema en el BIOS y en la pestaña "boot" seleccione el dispositivo USB como prioritario.
 
-3) Una vez iniciado el sistema operativo, seleccione "Try Ubuntu".
+3) Guarde los cambios y reinicie el sistema. Seleccione "Start Kubuntu".
 
-4) Descomprima el archivo en el directorio que deseé.
+4) Una vez iniciado el sistema operativo, seleccione "Try Kubuntu". Si se pide login entrar sin ingresar usuario o contraseña.
 
-5) Abra una terminal, navegue hasta el directorio de descompresión y ejecute el comando: "./AFRAINST"
+5) Descomprima el paquete "Grupo01.tgz" en el directorio que desee. Para ello ábralo con la aplicación Ark (Haciéndole clic), seleccione la pestaña "Action"->"Extract"->"Extract to" y seleccione el directorio. Otra manera: mueva el paquete al directorio deseado, abra una terminal, navegue al directorio y ejecute el comando:
 
-6) Siga los pasos del instalador. Puede personalizar los nombres de cada directorio o simplemente usar los que vienen por defecto presionando la tecla <ENTER>.
+   $ tar -xzf Grupo01.tgz
 
-7) Una vez finalizado, navegue hasta el directorio de ejecutables y ejecute el comando: ". ./AFRAINIC"
+6) Abra una terminal, navegue hasta el directorio de descompresión y ejecute el comando:
 
-8) El inicializador informará que la instalación está completa y preguntará si desea ejecutar AFRARECI. De no ser así, vuelva al paso (5) y se le informará de cómo completar la instalación.
+   $ ./AFRAINST
 
-9) Responda "Si" para que el inicializador ejecute AFRARECI. Ahora en el sistema está corriendo AFRA-I. Usted puede poner los archivos de llamadas en el directorio de novedades y el programa automáticamente los procesará y volcará los resultados en el directorio de llamadas sospechosas.
+7) Siga los pasos del instalador. Puede personalizar los nombres de cada directorio o simplemente usar los que vienen por defecto presionando la tecla <ENTER>.
 
-10) Cuando desee detener el programa, en el directorio de ejecutables ejecute el comando: "./Detener.sh AFRARECI"
+8) Una vez finalizado, navegue hasta el directorio de ejecutables y ejecute el comando:
 
-11) Si desea ejecutar nuevamente AFRARECI, utilice el comando "./Arrancar.sh AFRARECI"
+   $ . ./AFRAINIC
+
+9) El inicializador informará que la instalación está completa y preguntará si desea ejecutar AFRARECI. De no ser así, vuelva al paso (5) y se le informará de cómo completar la instalación.
+
+10) Responda "Si" para que el inicializador ejecute AFRARECI. Ahora en el sistema está corriendo AFRA-I. Usted puede poner los archivos de llamadas en el directorio de novedades y el programa automáticamente los procesará y volcará los resultados en el directorio de llamadas sospechosas.
+
+11) Cuando desee detener el programa, en el directorio de ejecutables ejecute el comando:
+
+    $ ./Detener.sh AFRARECI
+
+12) Si desea ejecutar nuevamente AFRARECI, utilice el comando
+
+    $ ./Arrancar.sh AFRARECI
 
 ************************************************************************
 
-# Comandos
-
+# COMANDOS
 ************************************************************************
 
 AFRAINST
@@ -72,7 +83,7 @@ b. Utilize la opcion 2 para seleccionar los filtros que se aplicaran sobre los a
    5. Filtrar por tiempo de conversacion, ingrese un valor numerico 'desde' y presione enter, luego ingrese un valor numerico 'hasta' y presione enter.
    6. Filtrar por Numero A, tipee el numero a filtrar con el siguiente formato <area>;<numero> y presione enter para seleccionarlo, repita para seleccionar mas numeros, o bien use las opciones T para terminar la seleccion, o B para borrar las opciones seleccionadas.
    7. Volver al menu principal, una vez que ya definio los filtros que desea aplicar, utilize esta opcion para volver al menu principal.
-c. Utilize la opcion 3 para procesar los archivos seleccionados con los filtros que se configuraron. 
+c. Utilize la opcion 3 para procesar los archivos seleccionados con los filtros que se configuraron.
    En este caso se mostrara el reporte en pantalla (para que los reporte se graben en archivo debe iniciar el programa con parametro -w ej. $ ./AFRALIST -r -w)
 d. Presione enter para modificar las selecciones anteriores y volver a gener otro reporte.
 e. Desde el menu principal utilize la opcion 4 para finaliar el programa.
