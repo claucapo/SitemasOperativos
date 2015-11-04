@@ -889,7 +889,7 @@ sub ranking_umbrales {
 
     open($fh, "<", "$ENV{'PROCDIR'}/$archivo") or die "No se pudo abrir el archivo $ENV{'PROCDIR'} $archivo: $!\n";
     while(<$fh>) { chomp; 
-      $_ =~ /^[^;]*;[^;]*;([^;]*);[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;$/ || next; 
+      $_ =~ /^[^;]*;[^;]*;([^;]*);[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*$/ || next; 
       $codigoUmbral=$1;
       if ($hashCantidades{$codigoUmbral}) {
         $hashCantidades{$codigoUmbral} = $hashCantidades{$codigoUmbral} + 1;
