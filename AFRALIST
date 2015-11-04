@@ -16,7 +16,7 @@ NOMBRE
      AFRALIST - Consultas y estadisticas de llamadas sospechosas
 
 SINOPSIS
-     AFRALIST [-r|-s] [-w] [-h] 
+     AFRALIST [-r|-s] [-w] [-h]
 
 DESCRIPCION
      AFRALIST permite realizar consultas y estadiscas de llamadas
@@ -45,16 +45,16 @@ CONSULTAS
      4    Finaliza el programa
 
      Seleccion de archivos
-          Se realiza ingresando el nombre o parte del nombre disponible 
-          que se desea seleccionar 
-     
+          Se realiza ingresando el nombre o parte del nombre disponible
+          que se desea seleccionar
+
      Seleccion de filtros
      1    Selecciona las centrales de un listado de centrales disponibles
      2    Selecciona los agentes de un listado de agentes disponibles
      3    Selecciona los umbrales de un listado de umbrales disponibles
      4    Selecciona los tipos de llamadas de un listado de tipos disponibles
      5    Selecciona un rango de tiempos de conversacion, primero debe
-          ingresar un valor numerico de menor tiempo y luego un valor 
+          ingresar un valor numerico de menor tiempo y luego un valor
           numero de maximo tiempo de llamada a filtrar
      6    Selecciona los numeros A (numeros origen) ingresando el numero
           con formato <cod_area>;<numero_linea>
@@ -87,7 +87,7 @@ ESTADISTICAS
      9    Ranking de llamadas sospechosas por umbrales
      0    Finaliza el programa
 
-     Si se indicó [-w] al ejecutar el programa, solicita nombre de archivo 
+     Si se indicó [-w] al ejecutar el programa, solicita nombre de archivo
      y graba el resultado en el directorio REPODIR/estadisticas caso contrario
      emite el listado por pantalla
 
@@ -109,13 +109,13 @@ VER MAS
 # Verifica que este correcto el entorno
 # =============================================================================
 sub verificar_entorno {
-  # Verificamos que exista la variable de entorno BINDIR
-  die "No se puede ejecutar: Primero debe correr AFRAINIC para preparar el entorno.\n" if not $ENV{'BINDIR'};
+  # Verificamos que exista la variable de entorno MAEDIR
+  die "No se puede ejecutar: Primero debe correr AFRAINIC para preparar el entorno.\n" if not $ENV{'MAEDIR'};
 
   # No puede correr si ya hay una instancia en ejecucion
   my @ps = `ps -ef | grep AFRALIST  | grep perl | grep -v grep`;
   die "Error: AFRALIST ya se esta ejecutando!\n" if @ps.size > 1;
-  
+
   return 0
 } # Fin: verifica_entorno
 
@@ -214,52 +214,52 @@ sub procesar_archivos {
       $match = 0;
       #say "Registro: $_";
       if ($_ =~ /($central);.*;.*;.*;.*;.*;.*;.*;.*;.*;.*;.*/) {
-        #say $_; say "match central "; 
+        #say $_; say "match central ";
         #print "central-ok ";
         $match++;
-      } 
+      }
       if ($_ =~ /.*;($agente);.*;.*;.*;.*;.*;.*;.*;.*;.*;.*/) {
-        #say $_; say "match agente "; 
+        #say $_; say "match agente ";
         #print "agente-ok ";
         $match++;
       }
       if ($_ =~ /.*;.*;($umbral);.*;.*;.*;.*;.*;.*;.*;.*;.*/) {
-        #say $_; say "match umbral "; 
+        #say $_; say "match umbral ";
         #print "umbral-ok ";
         $match++;
       }
       if ($_ =~ /.*;.*;.*;($tipo);.*;.*;.*;.*;.*;.*;.*;.*/) {
-        #say $_; say "match tipo "; 
+        #say $_; say "match tipo ";
         #print "tipo-ok ";
         $match++;
       }
       if ($_ =~ /.*;.*;.*;.*;.*;.*;($numero);.*;.*;.*;.*/) {
-        #say $_; say "match numero "; 
+        #say $_; say "match numero ";
         #print "numero-ok ";
         $match++;
       }
       if ($desde and $hasta) {
         if ($_ =~ /.*;.*;.*;.*;.*;(.*);.*;.*;.*;.*;.*;.*/ and $1 > $desde and $1 < $hasta) {
-          #say $_; say "match rango tiempo "; 
+          #say $_; say "match rango tiempo ";
           #print "rango-ok ";
           $match++;
         }
-      } else { 
-        #say $_; say "match rango tiempo "; 
+      } else {
+        #say $_; say "match rango tiempo ";
         #print "rango-ok ";
         $match++;
       }
       if ($match >= 6) {
         push(@resultados, $_);
       }
-      
+
     }
     close $fh;
   }
   $fh = '';
- 
+
   #DEBUG
-  #say "Resultados:"; 
+  #say "Resultados:";
   #print "$_\n" for sort @resultados;
   #<STDIN>;
 
@@ -278,30 +278,30 @@ sub resolver_consulta {
   # SELECCION DE CENTRALES
   my @centrales_disponibles;
   open(my $fh, "<", "$ENV{'MAEDIR'}/CdC.mae") or die "No se pudo abrir el archivo: $!\n";
-  while(<$fh>) { chomp; 
-    $_ =~ /(.*);.*/ || next; 
-    push(@centrales_disponibles, $1); } 
+  while(<$fh>) { chomp;
+    $_ =~ /(.*);.*/ || next;
+    push(@centrales_disponibles, $1); }
   close $fh;
   my @centrales_seleccionadas;
 
   # SELECCION DE AGENTES
   my @agentes_disponibles;
   open(my $fh, "<", "$ENV{'MAEDIR'}/agentes.mae") or die "No se pudo abrir el archivo: $!\n";
-  while(<$fh>) { chomp; 
-    $_ =~ /.*;.*;(.*);.*;.*/ || next; 
-    push(@agentes_disponibles, $1); } 
+  while(<$fh>) { chomp;
+    $_ =~ /.*;.*;(.*);.*;.*/ || next;
+    push(@agentes_disponibles, $1); }
   close $fh;
   my @agentes_seleccionados;
 
   # SELECCION DE UMBRALES
   my @umbrales_disponibles;
   open(my $fh, "<", "$ENV{'MAEDIR'}/umbral.tab") or die "No se pudo abrir el archivo: $!\n";
-  while(<$fh>) { chomp; 
-    $_ =~ /(.*);.*;.*;.*;.*;.*;.*/ || next; 
-    push(@umbrales_disponibles, $1); } 
+  while(<$fh>) { chomp;
+    $_ =~ /(.*);.*;.*;.*;.*;.*;.*/ || next;
+    push(@umbrales_disponibles, $1); }
   close $fh;
   my @umbrales_seleccionados;
-  
+
   # SELECCION TIPO DE LLAMADA
   my @tipos_disponibles = qw(LOC DDN DDI);
   my @tipos_seleccionados;
@@ -320,7 +320,7 @@ sub resolver_consulta {
     say "MENU : Principal - Filtros";
     say "1 - Seleccionar Archivos ($cant_seleccionados archivos)";
     say "2 - Seleccionar Filtros ($cant_filtros filtros)";
-    if ($grabar) { 
+    if ($grabar) {
       say "3 - Generar Reporte en Archivo";
     } else {
       say "3 - Generar Reporte por Pantalla";
@@ -519,8 +519,8 @@ sub resolver_consulta {
         }
       }
     }
-    if ($op0 == 3) { 
-      if ($cant_seleccionados > 0 && $cant_filtros > 0) { 
+    if ($op0 == 3) {
+      if ($cant_seleccionados > 0 && $cant_filtros > 0) {
         say "*****************************************";
         say "Procesando $cant_seleccionados archivos con $cant_filtros filtros";
         sleep 2;
@@ -531,7 +531,7 @@ sub resolver_consulta {
         @tipos = @tipos_seleccionados;
         @numeros = @numeros_seleccionados;
         @resultados = procesar_archivos(\@archivos, \@centrales, \@agentes, \@umbrales, \@tipos, \@numeros, $desde_conversacion, $hasta_conversacion);
-        if ($grabar) {      
+        if ($grabar) {
           # Definir nombre de archivo de salida
           @reportes_existentes = glob "$ENV{'REPODIR'}/*";
           @reportes_existentes = map(/subllamada\.(...)$/, @reportes_existentes);
@@ -551,7 +551,7 @@ sub resolver_consulta {
           print "Cantidad de registros: "; say scalar @resultados;
           say "*****************************************";
           # Grabar en archivo
-          open($fhs, ">", "$ENV{'REPODIR'}/$salida") or die "Error: No se puede abrir el archivo de salida: $!"; 
+          open($fhs, ">", "$ENV{'REPODIR'}/$salida") or die "Error: No se puede abrir el archivo de salida: $!";
           foreach (@resultados) {
             print $fhs "$_\n";
           }
@@ -573,9 +573,9 @@ sub resolver_consulta {
       }
       # Eliminamos los resultados anteriores
       @resultados = ();
-    }    
+    }
   }
-  
+
   &clear;
   say "Gracias por utilizar AFRALIST";
 
@@ -583,7 +583,7 @@ sub resolver_consulta {
 } # Fin: resolver_consulta
 
 # =============================================================================
-# Resuelve estadisticas 
+# Resuelve estadisticas
 # =============================================================================
 sub ranking_centrales {
   my ($archivos, $bandera) = @_;
@@ -595,36 +595,36 @@ sub ranking_centrales {
   %centrales = ();
   my @centrales_disponibles;
   open(my $fh, "<", "$ENV{'MAEDIR'}/CdC.mae") or die "No se pudo abrir el archivo: $!\n";
-  while(<$fh>) { chomp; 
-    $_ =~ /(.*);(.*)/ || next; 
+  while(<$fh>) { chomp;
+    $_ =~ /(.*);(.*)/ || next;
     push(@centrales_disponibles, $1);
     $centrales{$1} = $2;
-  } 
+  }
   close $fh;
 
   my %table;
   my %tiempos;
   my $cantidad;
   my $tiempo;
-  
+
   for ($i = 0; $i<= $#centrales_disponibles; $i++) {
     foreach $archivo (@archivos) {
       if ( ! -x "$ENV{'PROCDIR'}/$archivo" ) {
         $central = $centrales_disponibles[$i];
-                
+
         my @listaTiempos;
         open(my $fh, "<", "$ENV{'PROCDIR'}/$archivo") or die "No se pudo abrir el archivo: $!\n";
-        while(<$fh>) { chomp; 
-          $_ =~ /^$central;[^;]*;[^;]*;[^;]*;[^;]*;([^;]*);[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*$/ || next; 
+        while(<$fh>) { chomp;
+          $_ =~ /^$central;[^;]*;[^;]*;[^;]*;[^;]*;([^;]*);[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*$/ || next;
           push(@listaTiempos, $1);
-        } 
+        }
         close $fh;
-        
+
         my $tiempo = 0;
         foreach $t (@listaTiempos) {
           $tiempo = $tiempo + $t;
         }
-        
+
         $cantidad = `grep "^$central;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*\$" "$ENV{'PROCDIR'}/$archivo" | wc -l`;
         chomp($cantidad);
         if ($table{$central}) {
@@ -636,11 +636,11 @@ sub ranking_centrales {
         }
       }
     }
-  }    
+  }
 
   @resultados = ();
   push(@resultados, "codigo_central;cant_llamadas;desc_central;tiempo_llamadas");
-  
+
   if ($bandera) { # ranking por cantidad de llamadas
     foreach my $llave (sort {$table{$b} <=> $table{$a}} keys %table) {
       push(@resultados, "$llave;$table{$llave};$centrales{$llave};$tiempos{$llave}");
@@ -659,7 +659,7 @@ sub ranking_centrales {
 } # Fin: ranking_centrales
 
 # =============================================================================
-# Resuelve el ranking de llamadas sospechosas por oficina 
+# Resuelve el ranking de llamadas sospechosas por oficina
 # =============================================================================
 sub ranking_oficinas {
   my ($archivos, $bandera) = @_;
@@ -684,15 +684,15 @@ sub ranking_oficinas {
     foreach $archivo (@recorrer) {
       #say "archivo: $archivo";
       $cantidad = `cat "$ENV{'PROCDIR'}/$archivo" | wc -l`;
-            
+
       my @listaTiempos;
       open(my $fh, "<", "$ENV{'PROCDIR'}/$archivo") or die "No se pudo abrir el archivo: $!\n";
-      while(<$fh>) { chomp; 
-        $_ =~ /^[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;([^;]*);[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*$/ || next; 
+      while(<$fh>) { chomp;
+        $_ =~ /^[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;([^;]*);[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*$/ || next;
         push(@listaTiempos, $1);
-      } 
+      }
       close $fh;
-      
+
       my $tiempo = 0;
       foreach $t (@listaTiempos) {
         $tiempo = $tiempo + $t;
@@ -705,7 +705,7 @@ sub ranking_oficinas {
 
   @resultados = ();
   push(@resultados, "codigo_oficina;cant_llamadas;tiempo_llamadas");
-  
+
   if ($bandera) { # ranking por cantidad de llamadas
     foreach my $llave (sort {$table{$b} <=> $table{$a}} keys %table) {
       push(@resultados, "$llave;$table{$llave};$tiempos{$llave}");
@@ -717,7 +717,7 @@ sub ranking_oficinas {
       print("codigo_oficina: $llave, cant_llamadas: $table{$llave}, tiempo_llamadas: $tiempos{$llave}\n");
     }
   }
-  
+
   return @resultados;
 } # Fin: ranking_oficinas
 
@@ -735,11 +735,11 @@ sub ranking_agentes {
   my @agentes_disponibles;
   #print("$ENV{'MAEDIR'}/agentes.mae\n");
   open(my $fh, "<", "$ENV{'MAEDIR'}/agentes.mae") or die "No se pudo abrir el archivo: $!\n";
-  while(<$fh>) { chomp; 
-    $_ =~ /^[^;]*;[^;]*;([^;]*);([^;]*);([^;]*)$/ || next; 
+  while(<$fh>) { chomp;
+    $_ =~ /^[^;]*;[^;]*;([^;]*);([^;]*);([^;]*)$/ || next;
     push(@agentes_disponibles, $1);
     $agentes{$1} = $2 . " - " . $3;
-  } 
+  }
   close $fh;
 
   my %hashCantidades;
@@ -753,13 +753,13 @@ sub ranking_agentes {
         $agente = $agentes_disponibles[$i];
         $cantidad = `grep "^[^;]*;$agente;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*\$" "$ENV{'PROCDIR'}/$archivo" | wc -l`;
         chomp($cantidad);
-        
+
         my @listaTiempos;
         open(my $fh, "<", "$ENV{'PROCDIR'}/$archivo") or die "No se pudo abrir el archivo: $!\n";
-        while(<$fh>) { chomp; 
-          $_ =~ /^[^;]*;$agente;[^;]*;[^;]*;[^;]*;([^;]*);[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*$/ || next; 
+        while(<$fh>) { chomp;
+          $_ =~ /^[^;]*;$agente;[^;]*;[^;]*;[^;]*;([^;]*);[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*$/ || next;
           push(@listaTiempos, $1);
-        } 
+        }
         close $fh;
 
         my $tiempo = 0;
@@ -776,11 +776,11 @@ sub ranking_agentes {
         }
       }
     }
-  }    
+  }
 
   @resultados = ();
   push(@resultados, "agente;cant_llamadas;oficina-email;tiempo_llamadas");
-  
+
   if ($bandera) { # ranking por cantidad de llamadas
     foreach my $llave (sort {$hashCantidades{$b} <=> $hashCantidades{$a}} keys %hashCantidades) {
       push(@resultados, "$llave;$hashCantidades{$llave};$agentes{$llave};$tiempos{$llave}");
@@ -796,7 +796,7 @@ sub ranking_agentes {
       print("----------------------------------------------------------------------------\n");
     }
   }
-  
+
   return @resultados;
 } # Fin: ranking_agentes
 
@@ -813,19 +813,19 @@ sub ranking_destinos {
   #cargamos paises
   %paises = ();
   open(my $fh, "<", "$ENV{'MAEDIR'}/CdP.mae") or die "No se pudo abrir el archivo: $!\n";
-  while(<$fh>) { chomp; 
-    $_ =~ /^([^;]*);([^;]*)$/ || next; 
+  while(<$fh>) { chomp;
+    $_ =~ /^([^;]*);([^;]*)$/ || next;
     $paises{$1} = $2;
-  } 
+  }
   close $fh;
 
   #cargamos provincias
   %provincias = ();
   open(my $fh, "<", "$ENV{'MAEDIR'}/CdA.mae") or die "No se pudo abrir el archivo: $!\n";
-  while(<$fh>) { chomp; 
-    $_ =~ /^([^;]*);([^;]*)$/ || next; 
+  while(<$fh>) { chomp;
+    $_ =~ /^([^;]*);([^;]*)$/ || next;
     $provincias{$2} = $1;
-  } 
+  }
   close $fh;
 
   my %hashCantidades;
@@ -838,8 +838,8 @@ sub ranking_destinos {
   foreach $archivo (@archivos) {
 
     open($fh, "<", "$ENV{'PROCDIR'}/$archivo") or die "No se pudo abrir el archivo $ENV{'PROCDIR'} $archivo: $!\n";
-    while(<$fh>) { chomp; 
-      $_ =~ /^[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;([^;]*);([^;]*);([^;]*);[^;]*$/ || next; 
+    while(<$fh>) { chomp;
+      $_ =~ /^[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;([^;]*);([^;]*);([^;]*);[^;]*$/ || next;
       $codigoPais=$1;
       $codigoArea=$2;
       $numeroLinea=$3;
@@ -888,6 +888,7 @@ sub ranking_umbrales {
   foreach $archivo (@archivos) {
 
     open($fh, "<", "$ENV{'PROCDIR'}/$archivo") or die "No se pudo abrir el archivo $ENV{'PROCDIR'} $archivo: $!\n";
+
     while(<$fh>) { chomp; 
       $_ =~ /^[^;]*;[^;]*;([^;]*);[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*$/ || next; 
       $codigoUmbral=$1;
@@ -909,7 +910,7 @@ sub ranking_umbrales {
       print("----------------------------------------------\n");
     }
   }
-  
+
   return @resultados;
 } # Fin: ranking_umbrales
 
@@ -1035,7 +1036,7 @@ sub resolver_estadistica {
       sleep 2;
     }
     # Si se indicó -w (grabar) grabar el resultado
-    if ($grabar && scalar @resultados > 0) {      
+    if ($grabar && scalar @resultados > 0) {
       &clear;
       say "*****************************************";
       say "Generando reporte en archivo";
@@ -1050,7 +1051,7 @@ sub resolver_estadistica {
       say "Archivo generado: $salida";
       # Grabar en archivo
       mkdir $folder unless -d $folder;
-      open($fhs, ">", "$salida") or die "Error: No se puede abrir el archivo de salida: $!"; 
+      open($fhs, ">", "$salida") or die "Error: No se puede abrir el archivo de salida: $!";
       foreach (@resultados) {
         print $fhs "$_\n";
       }
@@ -1067,7 +1068,7 @@ sub resolver_estadistica {
 } # Fin: resolver_estadistica
 
 # *****************************************************************************
-# MAIN 
+# MAIN
 # *****************************************************************************
 verificar_entorno;
 verificar_parametros;
