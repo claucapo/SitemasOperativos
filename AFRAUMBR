@@ -125,14 +125,14 @@ function determinarSospechosa() {
 	local codigoCentral=$(echo ${archivoLlamadas##*/} | cut -f1 -d'_')
 	local fechaProceso=$(echo ${archivoLlamadas%%.*} | cut -f2 -d'_')
 	local codigoAgente=$(echo $registro | cut -f1 -d';')
-	local inicioLLamada=$(echo $registro | cut -f2 -d';')
+	local inicioLlamada=$(echo $registro | cut -f2 -d';')
 	local tiempoConversacion=$(echo $registro | cut -f3 -d';')
 	local nroA_codigoArea=$(echo $registro | cut -f4 -d';')
 	local nroA_numeroLinea=$(echo $registro | cut -f5 -d';')
 	local nroB_codigoPais=$(echo $registro | cut -f6 -d';')
 	local nroB_codigoArea=$(echo $registro | cut -f7 -d';')
 	local nroB_numeroLinea=$(echo $registro | cut -f8 -d';')
-	local tipoLLamada
+	local tipoLlamada
 
 	if ( esDDI "$nroB_codigoPais" "$nroB_numeroLinea" ); then
 		tipoLlamada="DDI"
@@ -149,11 +149,11 @@ function determinarSospechosa() {
 		local umbralId=$(echo $sedResult | cut -f1 -d';')
 		local tope=$(echo $sedResult | cut -f2 -d';')
 		local oficina=$(grep "^[^;]*;[^;]*;$codigoAgente;[^;]*;[^;]*$" "$MAESTRO_AGENTES" | cut -f4 -d';')
-		local anioMesLlamada=$(echo "$inicioLLamada" | sed 's-^[0-9]\{2\}/\([0-9]\{2\}\)/\([0-9]\{4\}\).*$-\2\1-')
+		local anioMesLlamada=$(echo "$inicioLlamada" | sed 's-^[0-9]\{2\}/\([0-9]\{2\}\)/\([0-9]\{4\}\).*$-\2\1-')
 		local archivoSospechosas="$PROCDIR/${oficina}_$anioMesLlamada"
 
 		if [ $tiempoConversacion -gt $tope ]; then
-			local registroSospechosas="$codigoCentral;$codigoAgente;$umbralId;$tipoLLamada;$inicioLLamada;$tiempoConversacion;$nroA_codigoArea;$nroA_numeroLinea;$nroB_codigoPais;$nroB_codigoArea;$nroB_numeroLinea;$fechaProceso"
+			local registroSospechosas="$codigoCentral;$codigoAgente;$umbralId;$tipoLlamada;$inicioLlamada;$tiempoConversacion;$nroA_codigoArea;$nroA_numeroLinea;$nroB_codigoPais;$nroB_codigoArea;$nroB_numeroLinea;$fechaProceso"
 			echo "$registroSospechosas" >> "$archivoSospechosas"
 			let cantidadSospechosas++
 		else
@@ -173,7 +173,7 @@ function rechazarRegistro() {
 	local motivo=$3
 	local codigoCentral=$(echo ${archivoLlamadas##*/} | cut -f1 -d'_')
 	local codigoAgente=$(echo $registro | cut -f1 -d';')
-	local inicioLLamada=$(echo $registro | cut -f2 -d';')
+	local inicioLlamada=$(echo $registro | cut -f2 -d';')
 	local tiempoConversacion=$(echo $registro | cut -f3 -d';')
 	local nroA_codigoArea=$(echo $registro | cut -f4 -d';')
 	local nroA_numeroLinea=$(echo $registro | cut -f5 -d';')
@@ -184,7 +184,7 @@ function rechazarRegistro() {
 	archivoLlamadas=${archivoLlamadas##*/}
 	archivoLlamadas=${archivoLlamadas%%.*}
 	
-	local registroRechazadas="$archivoLlamadas;$motivo;$codigoAgente;$inicioLLamada;$tiempoConversacion;$nroA_codigoArea;$nroA_numeroLinea;$nroB_codigoPais;$nroB_codigoArea;$nroB_numeroLinea"
+	local registroRechazadas="$archivoLlamadas;$motivo;$codigoAgente;$inicioLlamada;$tiempoConversacion;$nroA_codigoArea;$nroA_numeroLinea;$nroB_codigoPais;$nroB_codigoArea;$nroB_numeroLinea"
 	local archivoRechazadas="$RECHDIR/llamadas/${codigoCentral}.rech"
 	
 	echo "$registroRechazadas" >> "$archivoRechazadas"
@@ -197,7 +197,7 @@ function registroValido() {
 
 	local registro=$1
 	local codigoAgente=$(echo $registro | cut -f1 -d';')
-	local inicioLLamada=$(echo $registro | cut -f2 -d';')
+	local inicioLlamada=$(echo $registro | cut -f2 -d';')
 	local tiempoConversacion=$(echo $registro | cut -f3 -d';')
 	local nroA_codigoArea=$(echo $registro | cut -f4 -d';')
 	local nroA_numeroLinea=$(echo $registro | cut -f5 -d';')
