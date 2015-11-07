@@ -131,6 +131,7 @@ if [ "$faltantes_bindir" != "" ] || [ "$faltantes_maedir" != "" ] || [ "$faltant
         echo
         echo "Para reparar esto debe borrar el archivo \"AFRAINST.conf\" en el directorio $CONFDIR, y luego ejecutar AFRAINST para realizar la instalación de AFRA-I nuevamente."
     fi
+    MAEDIR=""
     return $error
 fi
 
@@ -142,6 +143,7 @@ for archivo in ${archivos[@]} ; do
         if [ ! -x "$archivo" ] || [ ! -r "$archivo" ] ; then
             grabar_en_log "No es posible cambiar los permisos del archivo $archivo." "ERR"
             echo "No es posible cambiar los permisos del archivo $archivo."
+            MAEDIR=""
             return $error
         fi
     fi
@@ -198,7 +200,7 @@ while [ "$opcion" != Si ] ; do
     fi
     if [ "$opcion" == No ] ; then
         echo "Para ejecutar el demonio AFRARECI utilice el siguiente comando: ./Arrancar.sh AFRARECI"
-        return $error
+        return $ok
     fi
 done
 "$BINDIR/Arrancar.sh" AFRARECI
